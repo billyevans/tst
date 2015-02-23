@@ -1,0 +1,5 @@
+[package]
+
+name = "tst"
+version = "0.0.1"
+authors = ["Alexey Pervushin <pervushinai@gmail.com>"]
