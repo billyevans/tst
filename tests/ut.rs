@@ -12,34 +12,42 @@ fn create_root() {
 fn insert() {
     let mut m = TST::<i32>::new();
 
-    m.insert("abc", &13);
+    assert_eq!(None, m.insert("abc", 13));
     assert_eq!(1, m.len());
 }
 
 #[test]
-fn get() {
-    let mut m = TST::<i32>::new();
+fn insert_2times_without_replace() {
+    let mut m = TST::new();
+    m.insert("abc", 37);
+    assert_eq!(Some(37), m.insert("abc", 666));
+    assert_eq!(Some(&666), m.get("abc"));
+}
 
-    m.insert("abc", &13);
+#[test]
+fn get() {
+    let mut m = TST::new();
+
+    m.insert("abc", 13);
     assert_eq!(Some(&13), m.get("abc"));
 }
 
 #[test]
 fn get_none() {
-    let mut m = TST::<i32>::new();
+    let mut m = TST::new();
 
-    m.insert("abc", &13);
+    m.insert("abc", 13);
     assert_eq!(None, m.get("abcd"));
     assert_eq!(None, m.get(""));
 }
 
 #[test]
 fn insert_few() {
-    let mut m = TST::<i32>::new();
+    let mut m = TST::new();
 
-    m.insert("abcde", &13);
-    m.insert("abcdf", &14);
-    m.insert("abcdg", &15);
+    m.insert("abcde", 13);
+    m.insert("abcdf", 14);
+    m.insert("abcdg", 15);
     assert_eq!(3, m.len());
 
     assert_eq!(Some(&13), m.get("abcde"));
@@ -52,8 +60,8 @@ fn insert_few() {
 fn replace() {
     let mut m = TST::<i32>::new();
 
-    m.insert("abcde", &13);
-    m.insert("abcde", &1);
+    m.insert("abcde", 13);
+    m.insert("abcde", 1);
     assert_eq!(1, m.len());
 
     assert_eq!(Some(&1), m.get("abcde"));
@@ -63,7 +71,7 @@ fn replace() {
 fn contains() {
     let mut m = TST::<i32>::new();
 
-    m.insert("xxxe", &13);
+    m.insert("xxxe", 13);
     assert!(!m.contains_key("abcde"));
     assert!(!m.contains_key("xxx"));
     assert!(m.contains_key("xxxe"));
@@ -76,8 +84,82 @@ fn is_empty() {
     assert_eq!(0, m.len());
     assert!(m.is_empty());
 
-    m.insert("qwer", &10000);
+    m.insert("qwer", 10000);
     assert!(!m.is_empty());
-    // TODO: add clear() and check again
+
+    m.clear();
+    assert!(m.is_empty());
 }
+
+#[test]
+fn clear() {
+    let mut m = TST::new();
+    m.clear();
+    assert_eq!(None, m.insert("abc", 11));
+    assert_eq!(None, m.insert("abcd", -3));
+    assert_eq!(None, m.insert("a", 2));
+    m.clear();
+    assert_eq!(None, m.insert("abc", 11));
+    assert_eq!(None, m.insert("abcd", -3));
+    assert_eq!(None, m.insert("a", 2));
+}
+
+#[test]
+fn remove_from_empty() {
+    let mut m = TST::<u32>::new();
+    assert_eq!(None, m.remove("xxx"));
+    assert_eq!(None, m.remove(""));
+}
+
+#[test]
+fn remove() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+
+    assert_eq!(None, m.remove(""));
+    assert_eq!(None, m.remove("a"));
+    assert_eq!(None, m.remove("ab"));
+
+    assert_eq!(Some(1), m.remove("abc"));
+
+    assert_eq!(None, m.remove("abc"));
+}
+
+#[test]
+fn longest_prefix_empty() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+
+    assert_eq!("", m.longest_prefix("qwer"));
+    assert_eq!("", m.longest_prefix(""));
+}
+
+#[test]
+fn longest_prefix() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+    m.insert("abcd", 1);
+    m.insert("abce", 1);
+    m.insert("abca", 1);
+    m.insert("zxd", 1);
+    m.insert("add", 1);
+    m.insert("abcdef", 1);
+
+    assert_eq!("abcd", m.longest_prefix("abcde"));
+    assert_eq!("abcdef", m.longest_prefix("abcdef"));
+}
+
+/*
+#[test]
+fn keys() {
+    let mut m = TST::<u32>::new();
+    m.insert("abc", &1);
+    m.insert("bcd", &2);
+    m.insert("c", &3);
+    m.insert("abcd", &1);
+
+    for key in m.keys() {
+        println!("{}", key);
+    }
+}*/
 
