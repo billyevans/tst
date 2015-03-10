@@ -36,12 +36,28 @@
  */
 
 use std::mem;
+use std::ops;
 
 #[derive(Clone)]
 pub struct TST<V> {
     root: Option<Box<Node<V>>>,
     size: usize
 }
+
+impl<'x, V> ops::Index<&'x str> for TST<V> {
+    type Output = V;
+    #[inline]
+    fn index(&self, idx: &&str) -> &V {
+        self.get(idx).expect("no entry found for key")
+    }
+}
+/*
+impl<'x, V> ops::IndexMut<&'x str> for TST<V> {
+    #[inline]
+    fn index_mut(&mut self, idx: &&str) -> &mut V {
+        self.get_mut(idx).expect("no entry found for key")
+    }
+}*/
 
 impl<V> TST<V> {
     pub fn new() -> TST<V> {
@@ -145,7 +161,7 @@ impl<V> Node<V> {
                     }
                 }
             }
-        }     
+        }
     }
     fn get(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&V> {
         if i >= key.len() { return None; }

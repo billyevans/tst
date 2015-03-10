@@ -149,6 +149,32 @@ fn longest_prefix() {
     assert_eq!("abcdef", m.longest_prefix("abcdef"));
 }
 
+#[test]
+fn access_by_index() {
+    let mut m = TST::new();
+
+    m.insert("abc", 2);
+    m.insert("abd", 1);
+    m.insert("abdd", 4);
+
+
+    assert_eq!(2, m["abc"]);
+    assert_eq!(1, m["abd"]);
+    assert_eq!(4, m["abdd"]);
+}
+
+#[test]
+#[should_fail]
+fn access_by_wrong_index() {
+    let mut m = TST::new();
+
+    m.insert("abc", 2);
+    m.insert("abd", 1);
+    m.insert("abdd", 4);
+
+    assert_eq!(3, m["a"]);
+}
+
 /*
 #[test]
 fn keys() {
