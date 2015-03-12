@@ -175,6 +175,44 @@ fn access_by_wrong_index() {
     assert_eq!(3, m["a"]);
 }
 
+#[test]
+fn format_empty() {
+    let m = TST::<u64>::new();
+
+    assert_eq!("{}", format!("{:?}", m));
+}
+
+#[test]
+fn format() {
+    let mut m = TST::<i64>::new();
+
+    m.insert("abc", 2);
+    m.insert("abd", 1);
+    m.insert("abdd", 4);
+    m.insert("abcdefghjkik", -169874);
+
+    let m_str = format!("{:?}", m);
+    assert_eq!(
+        "{\"abc\": 2,\"abcdefghjkik\": -169874,\"abd\": 1,\"abdd\": 4,}", 
+        m_str
+    );
+}
+
+/*
+#[test]
+fn iterator() {
+    let mut m = TST::new();
+
+    m.insert("abc", 2);
+    m.insert("abd", 1);
+    m.insert("abdd", 4);
+    m.insert("xxx", 13);
+
+    for x in m {
+        println!("{}", x);
+    }
+}*/
+
 /*
 #[test]
 fn keys() {
