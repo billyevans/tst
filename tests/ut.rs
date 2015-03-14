@@ -1,7 +1,7 @@
 extern crate tst;
 
 #[cfg(test)]
-use tst::tst::*;
+use tst::tst::TST;
 #[test]
 fn create_root() {
     let m = TST::<i32>::new();
@@ -39,6 +39,17 @@ fn get_none() {
     m.insert("abc", 13);
     assert_eq!(None, m.get("abcd"));
     assert_eq!(None, m.get(""));
+}
+
+#[test]
+fn get_mut() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+    match m.get_mut("abc") {
+        Some(x) => *x = 13,
+        None => panic!(),
+    }
+    assert_eq!(Some(&13), m.get("abc"));
 }
 
 #[test]
@@ -157,8 +168,24 @@ fn access_by_index() {
     m.insert("abd", 1);
     m.insert("abdd", 4);
 
-
     assert_eq!(2, m["abc"]);
+    assert_eq!(1, m["abd"]);
+    assert_eq!(4, m["abdd"]);
+}
+
+#[test]
+fn access_by_index_mut() {
+    let mut m = TST::new();
+
+    m.insert("abc", 2);
+    m.insert("abd", 1);
+    m.insert("abdd", 4);
+    {
+        let v = &mut m["abc"];
+        *v += 1;
+    }
+
+    assert_eq!(3, m["abc"]);
     assert_eq!(1, m["abd"]);
     assert_eq!(4, m["abdd"]);
 }

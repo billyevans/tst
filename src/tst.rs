@@ -1,37 +1,39 @@
-/*
-    // all keys in symbol table
-    public Iterable<String> keys() {
-        Queue<String> queue = new Queue<String>();
-        collect(root, "", queue);
-        return queue;
-    }
-    // all keys starting with given prefix
-    public Iterable<String> prefixMatch(String prefix) {
-        Queue<String> queue = new Queue<String>();
-        Node x = get(root, prefix, 0);
-        if (x == null) return queue;
-        if (x.val != null) queue.enqueue(prefix);
-        collect(x.mid, prefix, queue);
-        return queue;
-    }
-    // all keys in subtrie rooted at x with given prefix
-    private void collect(Node x, String prefix, Queue<String> queue) {
-        if (x == null) return;
-        collect(x.left,  prefix,       queue);
-        if (x.val != null) queue.enqueue(prefix + x.c);
-        collect(x.mid,   prefix + x.c, queue);
-        collect(x.right, prefix,       queue);
-    }
-}*/
-
-/*
- *  Symbol table with string keys, implemented using a ternary search
- *  trie (TST).
- */
 
 use std::mem;
 use std::ops;
 use std::fmt::{self, Debug};
+
+
+///
+/// Symbol table with string keys, implemented using a ternary search
+/// trie (TST).
+///
+/// There is character on each node of the trie, value and links for children.
+/// Each node has 3 children: smaller (lt), equal (eq), larger (gt).
+/// It could be used as associative array for strings as keys.
+/// Also it provides extra features, like getting all keys, values with common prefix.
+/// # Examples
+///
+/// ```rust
+/// use tst::tst::TST;
+///
+/// let mut m = TST::new();
+///
+/// m.insert("first", 1);
+/// m.insert("second", 2);
+/// m.insert("firstthird", 3);
+/// m.insert("firstsecond", 12);
+///
+/// for (key, value) in m.iter() {
+///     println!("{}: {}", key, value);
+/// }
+/// assert_eq!(Some(&1), m.get("first"));
+/// assert_eq!(4, m.len());
+///
+/// // calculating longest prefix
+/// assert_eq!("firstsecond", m.longest_prefix("firstsecondthird"));
+/// ```
+
 
 #[derive(Clone)]
 pub struct TST<V> {
@@ -59,6 +61,9 @@ impl<V> TST<V> {
     }
     pub fn get(&self, key: &str) -> Option<&V> {
         Node::get(&self.root, key.chars().collect(), 0)
+    }
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
+        Node::get_mut(&mut self.root, key.chars().collect(), 0)
     }
     pub fn contains_key(&self, key: &str) -> bool {
         self.get(key).is_some()
@@ -103,13 +108,13 @@ impl<'x, V> ops::Index<&'x str> for TST<V> {
         self.get(idx).expect("no entry found for key")
     }
 }
-/*
+
 impl<'x, V> ops::IndexMut<&'x str> for TST<V> {
     #[inline]
     fn index_mut(&mut self, idx: &&str) -> &mut V {
         self.get_mut(idx).expect("no entry found for key")
     }
-}*/
+}
 
 impl<V: Debug> Debug for TST<V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -195,6 +200,31 @@ impl<V> Node<V> {
             }
         }
     }
+    fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&mut V> {
+        if i >= key.len() { return None; }
+        match *node {
+            None => None,
+            Some(ref mut cur) => {
+                let k = key[i];
+                if k < cur.c {
+                    Node::get_mut(&mut cur.lt, key, i)
+                }
+                else if k > cur.c {
+                    Node::get_mut(&mut cur.gt, key, i)
+                }
+                else if i + 1 < key.len() {
+                    Node::get_mut(&mut cur.eq, key, i+1)
+                }
+                else {
+                    match cur.val {
+                        None => None,
+                        Some(ref mut r) => Some(r)
+                    }
+                }
+            }
+        }
+    }
+
     // TODO: add shrink all tails
     fn remove(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<V> {
         if i >= key.len() { return None; }

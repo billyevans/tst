@@ -6,7 +6,6 @@ TODO:
 - iter_mut
 - keys iterator
 - values iterator
-- [] mut access
 - add prefixMatch
 - add collect as iterator()
 - add benchmark
