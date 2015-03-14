@@ -198,20 +198,22 @@ fn format() {
     );
 }
 
-/*
 #[test]
 fn iterator() {
     let mut m = TST::new();
 
-    m.insert("abc", 2);
-    m.insert("abd", 1);
-    m.insert("abdd", 4);
-    m.insert("xxx", 13);
+    m.insert("b", 2);
+    m.insert("a", 1);
+    m.insert("c", 4);
+    m.insert("aa", 13);
 
-    for x in m {
-        println!("{}", x);
+    let mut m_str = String::new();
+    for x in m.iter() {
+        m_str.push_str(format!("{:?}", x).as_slice());
+        //println!();
     }
-}*/
+    assert_eq!("(\"a\", 1)(\"aa\", 13)(\"b\", 2)(\"c\", 4)", m_str);
+}
 
 /*
 #[test]

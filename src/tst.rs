@@ -91,13 +91,9 @@ impl<V> TST<V> {
         }
         return pref.slice_to(length);
     }
-  /*  pub fn iter(&self) -> Iter<V> {
-        Iter {
-            stack: vec![],
-            ptr: &self.root,
-            elems_left: self.len(),
-        }
-    }*/
+    pub fn iter(&self) -> Iter<V> {
+        Iter::<V>::new(&self.root, self.len())
+    }
 }
 
 impl<'x, V> ops::Index<&'x str> for TST<V> {
@@ -118,7 +114,9 @@ impl<'x, V> ops::IndexMut<&'x str> for TST<V> {
 impl<V: Debug> Debug for TST<V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{{"));
-        try!(write!(f, "{:?}", self.root));
+        for (k, v) in self.iter() {
+            try!(write!(f, "{:?}: {:?},", k, v));
+        }
         (write!(f, "}}"))
     }
 }
@@ -224,59 +222,58 @@ impl<V> Node<V> {
     }
 }
 
-impl<V: Debug> Debug for Option<Box<Node<V>>> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fn iterate<V: Debug>(node: &Option<Box<Node<V>>>, f: &mut fmt::Formatter, prefix: &mut String)
-            -> fmt::Result 
-        {
-            match *node {
-                None => write!(f, ""),
-                Some(ref cur) => {
-                    try!(iterate(&cur.lt, f, prefix));
-                    prefix.push(cur.c);
-                    match cur.val {
-                        None => (),
-                        Some(ref val) => {
-                            try!(write!(f, "{:?}: {:?},", prefix, val));
-                        }
-                    }
-                    try!(iterate(&cur.eq, f, prefix));
-                    prefix.pop();
-                    iterate(&cur.gt, f, prefix)
-                }
-            }
-        }
-        iterate(self, f, &mut String::from_str(""))
-    }
-}
-
-/*
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
-    stack: Vec<&'a Box<Node<V>>>,
-    ptr: &'a Option<Box<Node<V>>>,
+    stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>)>,
     elems_left: usize,
 }
 
+impl <'a, V> Iter<'a, V> {
+    fn new(ptr: &'a Option<Box<Node<V>>>, size: usize) -> Iter<'a, V> {
+        Iter{
+            stack: vec![(Some(ptr), String::new(), None)],
+            elems_left: size,
+        }
+    }
+}
+
 impl<'a, V> Iterator for Iter<'a, V> {
-    type Item = (&'a str, &'a V);
-    fn next(&mut self) -> Option<(&'a str, &'a V)> {
-        match *self.ptr {
-            None => None,
-            Some(ref r) => {
-                loop {
-                    if k < r.c { x = &r.lt; }
-                    else if k > r.c { x = &r.gt; }
-                    else {
-                        i += 1;
-                        if r.val.is_some() { length = i; }
-                        x = &r.eq;
-                        break;
+    type Item = (String, &'a V);
+    fn next(&mut self) -> Option<(String, &'a V)> {
+        while !self.stack.is_empty() {
+            let node = self.stack.pop().unwrap();
+            match node.0 {
+                None => {
+                    self.elems_left -= 1;
+                    return Some((node.1, node.2.unwrap()));
+                }
+                Some(n) => {
+                    match *n {
+                        None => {}
+                        Some(ref cur) => {
+                            let mut prefix = String::new();
+                            if cur.gt.is_some() {
+                                self.stack.push((Some(&cur.gt), node.1.clone(), None));
+                            }
+                            if cur.eq.is_some() || cur.val.is_some() {
+                                prefix.push_str(node.1.as_slice());
+                                prefix.push(cur.c);
+                            }
+                            if cur.eq.is_some() {
+                                self.stack.push((Some(&cur.eq), prefix.clone(), None));
+                            }
+                            if cur.val.is_some() {
+                                self.stack.push((None, prefix, Some(cur.val.as_ref().unwrap())));
+                            }
+                            if cur.lt.is_some() {
+                                self.stack.push((Some(&cur.lt), node.1.clone(), None));
+                            }
+                        }
                     }
                 }
             }
         }
-
+        None
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.elems_left, Some(self.elems_left))
@@ -285,4 +282,4 @@ impl<'a, V> Iterator for Iter<'a, V> {
 impl<'a, V> ExactSizeIterator for Iter<'a, V> {
     fn len(&self) -> usize { self.elems_left }
 }
-*/
+
