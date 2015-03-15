@@ -134,6 +134,7 @@ fn remove() {
     assert_eq!(Some(1), m.remove("abc"));
 
     assert_eq!(None, m.remove("abc"));
+    assert_eq!(None, m.get("abc"));
 }
 
 #[test]
@@ -242,6 +243,36 @@ fn iterator() {
     assert_eq!("(\"a\", 1)(\"aa\", 13)(\"b\", 2)(\"c\", 4)", m_str);
 }
 
+#[test]
+fn prefix_iterator_empty() {
+    let mut m = TST::new();
+
+    m.insert("bbc", 2);
+    m.insert("abc", 1);
+    m.insert("dbc", 4);
+
+    let mut m_str = String::new();
+    for x in m.iter_prefix("abd") {
+        m_str.push_str(format!("{:?}", x).as_slice());
+    }
+    assert_eq!("", m_str);
+}
+
+#[test]
+fn prefix_iterator() {
+    let mut m = TST::new();
+
+    m.insert("first", 1);
+    m.insert("second", 2);
+    m.insert("firstthird", 3);
+    m.insert("firstsecond", 12);
+    let mut m_str = String::new();
+
+    for x in m.iter_prefix("fir") {
+        m_str.push_str(format!("{:?}", x).as_slice());
+    }
+    assert_eq!("(\"first\", 1)(\"firstsecond\", 12)(\"firstthird\", 3)", m_str);
+}
 /*
 #[test]
 fn keys() {

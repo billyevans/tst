@@ -2,7 +2,7 @@
 use std::mem;
 use std::ops;
 use std::fmt::{self, Debug};
-
+use std::default::Default;
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -32,6 +32,11 @@ use std::fmt::{self, Debug};
 ///
 /// // calculating longest prefix
 /// assert_eq!("firstsecond", m.longest_prefix("firstsecondthird"));
+///
+/// // get values with common prefix
+/// for (key, value) in m.iter_prefix("first") {
+///     println!("{}: {}", key, value);
+/// }
 /// ```
 
 
@@ -60,7 +65,21 @@ impl<V> TST<V> {
         ret
     }
     pub fn get(&self, key: &str) -> Option<&V> {
-        Node::get(&self.root, key.chars().collect(), 0)
+        let node = Node::get_node(&self.root, key.chars().collect(), 0);
+        match node {
+            None => None,
+            Some(ptr) => {
+                match *ptr {
+                    None => None,
+                    Some(ref cur) => {
+                        match cur.val {
+                            None => None,
+                            Some(ref r) => Some(r)
+                        }                        
+                    }
+                 }
+            }
+        }
     }
     pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
         Node::get_mut(&mut self.root, key.chars().collect(), 0)
@@ -96,8 +115,19 @@ impl<V> TST<V> {
         }
         return pref.slice_to(length);
     }
+    pub fn iter_prefix(&self, pref: &str) -> Iter<V> {
+        let node = Node::get_node(&self.root, pref.chars().collect(), 0);
+        match node {
+            None => Iter { // TODO: Defaut ?!
+                        stack: vec![],
+                        min_size: 0,
+                        max_size: 0,
+                    },
+            Some(ptr) => Iter::<V>::new(ptr, pref.slice_to(pref.len()-1), 0, self.len()),
+        }
+    }
     pub fn iter(&self) -> Iter<V> {
-        Iter::<V>::new(&self.root, self.len())
+        Iter::<V>::new(&self.root, "", self.len(), self.len())
     }
 }
 
@@ -176,30 +206,30 @@ impl<V> Node<V> {
             }
         }
     }
-    fn get(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&V> {
+    fn get_node(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
+            Option<&Option<Box<Node<V>>>> 
+    {
         if i >= key.len() { return None; }
         match *node {
             None => None,
             Some(ref cur) => {
                 let k = key[i];
                 if k < cur.c {
-                    Node::get(&cur.lt, key, i)
+                    Node::get_node(&cur.lt, key, i)
                 }
                 else if k > cur.c {
-                    Node::get(&cur.gt, key, i)
+                    Node::get_node(&cur.gt, key, i)
                 }
                 else if i + 1 < key.len() {
-                    Node::get(&cur.eq, key, i+1)
+                    Node::get_node(&cur.eq, key, i+1)
                 }
                 else {
-                    match cur.val {
-                        None => None,
-                        Some(ref r) => Some(r)
-                    }
+                    Some(node)
                 }
             }
         }
     }
+
     fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&mut V> {
         if i >= key.len() { return None; }
         match *node {
@@ -255,14 +285,26 @@ impl<V> Node<V> {
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
     stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>)>,
-    elems_left: usize,
+    min_size: usize,
+    max_size: usize,
 }
 
-impl <'a, V> Iter<'a, V> {
-    fn new(ptr: &'a Option<Box<Node<V>>>, size: usize) -> Iter<'a, V> {
-        Iter{
-            stack: vec![(Some(ptr), String::new(), None)],
-            elems_left: size,
+impl<'a, V> Iter<'a, V> {
+    fn new(ptr: &'a Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> Iter<'a, V> {
+        Iter {
+            stack: vec![(Some(ptr), String::from_str(prefix), None)],
+            min_size: min,
+            max_size: max,
+        }
+    }
+}
+
+impl<'a, V> Default for Iter<'a, V> {
+    fn default() -> Iter<'a, V> {
+        Iter {
+            stack: vec![],
+            min_size: 0,
+            max_size: 0,
         }
     }
 }
@@ -274,7 +316,10 @@ impl<'a, V> Iterator for Iter<'a, V> {
             let node = self.stack.pop().unwrap();
             match node.0 {
                 None => {
-                    self.elems_left -= 1;
+                    if self.min_size == self.max_size {
+                        self.min_size -= 1;
+                    }
+                    self.max_size -= 1;
                     return Some((node.1, node.2.unwrap()));
                 }
                 Some(n) => {
@@ -306,10 +351,7 @@ impl<'a, V> Iterator for Iter<'a, V> {
         None
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.elems_left, Some(self.elems_left))
+        (self.min_size, Some(self.max_size))
     }
-}
-impl<'a, V> ExactSizeIterator for Iter<'a, V> {
-    fn len(&self) -> usize { self.elems_left }
 }
 

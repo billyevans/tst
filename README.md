@@ -6,8 +6,6 @@ TODO:
 - iter_mut
 - keys iterator
 - values iterator
-- add prefixMatch
-- add collect as iterator()
 - add benchmark
 - upload to cargo
 - make non-reccursive
