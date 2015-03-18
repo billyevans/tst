@@ -118,11 +118,7 @@ impl<V> TST<V> {
     pub fn iter_prefix(&self, pref: &str) -> Iter<V> {
         let node = Node::get_node(&self.root, pref.chars().collect(), 0);
         match node {
-            None => Iter { // TODO: Defaut ?!
-                        stack: vec![],
-                        min_size: 0,
-                        max_size: 0,
-                    },
+            None => Default::default(),
             Some(ptr) => Iter::<V>::new(ptr, pref.slice_to(pref.len()-1), 0, self.len()),
         }
     }
