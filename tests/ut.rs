@@ -2,6 +2,8 @@ extern crate tst;
 
 #[cfg(test)]
 use tst::tst::TST;
+use tst::tst::Entry::*;
+
 #[test]
 fn create_root() {
     let m = TST::<i32>::new();
@@ -50,6 +52,78 @@ fn get_mut() {
         None => panic!(),
     }
     assert_eq!(Some(&13), m.get("abc"));
+}
+
+#[test]
+fn entry_occupied() {
+    let mut m = TST::new();
+
+    m.insert("abcde", 13);
+    m.insert("abcdf", 14);
+    match m.entry("abcdf") {
+        Vacant(_) => unreachable!(),
+        Occupied(mut entry) => {
+            assert_eq!(&14, entry.get());
+            assert_eq!(14, entry.insert(100));
+        }
+    }
+    assert_eq!(Some(&100), m.get("abcdf"));
+}
+
+#[test]
+fn entry_occupied_remove() {
+    let mut m = TST::new();
+
+    m.insert("abcde", 13);
+    m.insert("abcdf", 14);
+    match m.entry("abcdf") {
+        Vacant(_) => unreachable!(),
+        Occupied(entry) => {
+            assert_eq!(14, entry.remove());
+        }
+    }
+    assert_eq!(None, m.get("abcdf"));
+    assert_eq!(1, m.len());
+}
+
+#[test]
+fn entry_occupied_update() {
+    let mut m = TST::new();
+
+    m.insert("abcde", 13);
+    m.insert("abcdf", 14);
+    match m.entry("abcdf") {
+        Vacant(_) => unreachable!(),
+        Occupied(mut entry) => {
+            {
+                let v = entry.get_mut();
+                assert_eq!(14, *v);
+                *v += 100;
+            }
+            {
+                let v = entry.get_mut();
+                assert_eq!(114, *v);
+                *v += 100;
+            }
+        }
+    }
+    assert_eq!(Some(&214), m.get("abcdf"));
+    assert_eq!(2, m.len());
+}
+
+#[test]
+fn entry_vacant() {
+    let mut m = TST::new();
+
+    m.insert("abcde", 13);
+    m.insert("abcdf", 14);
+    match m.entry("abcdg") {
+        Vacant(entry) => {
+            assert_eq!(100, *entry.insert(100));
+        },
+        Occupied(_) => unreachable!(),
+    }
+    assert_eq!(Some(&100), m.get("abcdg"));
 }
 
 #[test]

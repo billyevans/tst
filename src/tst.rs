@@ -3,6 +3,7 @@ use std::mem;
 use std::ops;
 use std::fmt::{self, Debug};
 use std::default::Default;
+use self::Entry::*;
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -55,9 +56,16 @@ impl<V> TST<V> {
     // key must be non-empty string!
     pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
         assert!(key.len() > 0);
-        let ret = Node::insert(&mut self.root, key.chars().collect(), val, 0);
+        let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
+        let ret = mem::replace(&mut cur.val, Some(val));
         if ret.is_none() { self.size += 1 }
         ret
+    }
+    pub fn entry(&mut self, key: &str) -> Entry<V> {
+        assert!(key.len() > 0);
+        let l = &mut self.size;
+        let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
+        Entry::<V>::new(cur, l)
     }
     pub fn remove(&mut self, key: &str) -> Option<V> {
         let ret = Node::remove(&mut self.root, key.chars().collect(), 0);
@@ -75,7 +83,7 @@ impl<V> TST<V> {
                         match cur.val {
                             None => None,
                             Some(ref r) => Some(r)
-                        }                        
+                        }
                     }
                  }
             }
@@ -171,33 +179,25 @@ impl<V> Node<V> {
             c: c
         }
     }
-    fn insert(node: &mut Option<Box<Node<V>>>, key: Vec<char>, val: V, i: usize) -> Option<V> {
+    fn insert_node(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> &mut Box<Node<V>> {
         let k = key[i];
         match *node {
             None => {
                 *node = Some(Box::new(Node::new(k)));
-                Node::insert(node, key, val, i)
+                Node::insert_node(node, key, i)
             }
             Some(ref mut cur) => {
                 if k < cur.c {
-                    Node::insert(&mut cur.lt, key, val, i)
+                    Node::insert_node(&mut cur.lt, key, i)
                 }
                 else if k > cur.c {
-                    Node::insert(&mut cur.gt, key, val, i)
+                    Node::insert_node(&mut cur.gt, key, i)
                 }
                 else if i+1 < key.len() {
-                    Node::insert(&mut cur.eq, key, val, i+1)
+                    Node::insert_node(&mut cur.eq, key, i+1)
                 }
                 else {
-                    match cur.val {
-                        None => {
-                            cur.val = Some(val);
-                            None
-                        }
-                        Some(_) => {
-                            mem::replace(&mut cur.val, Some(val))
-                        }
-                    }
+                    cur
                 }
             }
         }
@@ -350,4 +350,91 @@ impl<'a, V> Iterator for Iter<'a, V> {
         (self.min_size, Some(self.max_size))
     }
 }
+
+
+pub struct OccupiedEntry<'a, V: 'a> {
+    node: &'a mut Box<Node<V>>,
+    cont_size: &'a mut usize,
+}
+
+pub struct VacantEntry<'a, V: 'a> {
+    node: &'a mut Box<Node<V>>,
+}
+
+pub enum Entry<'a, V: 'a> {
+    Occupied(OccupiedEntry<'a, V>),
+    Vacant(VacantEntry<'a, V>),
+}
+
+impl<'a, V> Entry<'a, V> {
+    fn new(node: &'a mut Box<Node<V>>, size: &'a mut usize) -> Entry<'a, V> {
+        match node.val {
+            None => Vacant(VacantEntry::new(node)),
+            Some(_) => Occupied(OccupiedEntry::new(node, size)),
+        }
+    }
+    pub fn get(self) -> Result<&'a mut V, VacantEntry<'a, V>> {
+        match self {
+            Occupied(entry) => Ok(entry.into_mut()),
+            Vacant(entry) => Err(entry),
+        }
+    }
+    /// Ensures a value is in the entry by inserting the default if empty, and returns
+    /// a mutable reference to the value in the entry.
+    pub fn or_insert(self, default: V) -> &'a mut V {
+        match self {
+            Occupied(entry) => entry.into_mut(),
+            Vacant(entry) => entry.insert(default),
+        }
+    }
+    /// Ensures a value is in the entry by inserting the result of the default function if empty,
+    /// and returns a mutable reference to the value in the entry.
+    pub fn or_insert_with<F: FnOnce() -> V>(self, default: F) -> &'a mut V {
+        match self {
+            Occupied(entry) => entry.into_mut(),
+            Vacant(entry) => entry.insert(default()),
+        }
+    }
+}
+
+impl<'a, V> OccupiedEntry<'a, V> {
+    fn new(node: &'a mut Box<Node<V>>, size: &'a mut usize) -> OccupiedEntry<'a, V> {
+        OccupiedEntry {node: node, cont_size: size}
+    }
+    /// Gets a reference to the value in the entry.
+    pub fn get(&self) -> &V {
+        self.node.val.as_ref().unwrap()
+    }
+    /// Gets a mutable reference to the value in the entry.
+    pub fn get_mut(&mut self) -> &mut V {
+        self.node.val.as_mut().unwrap()
+    }
+    /// Converts the OccupiedEntry into a mutable reference to the value in the entry
+    /// with a lifetime bound to the tst itself
+    pub fn into_mut(self) -> &'a mut V {
+        self.node.val.as_mut().unwrap()
+    }
+    /// Sets the value of the entry, and returns the entry's old value
+    pub fn insert(&mut self, mut value: V) -> V {
+        mem::replace(&mut self.node.val, Some(value)).unwrap()
+    }
+    /// Takes the value out of the entry, and returns it
+    pub fn remove(self) -> V {
+        *self.cont_size -= 1;
+        mem::replace(&mut self.node.val, None).unwrap()
+    }
+}
+
+impl<'a, V> VacantEntry<'a, V> {
+    fn new(node: &'a mut Box<Node<V>>) -> VacantEntry<'a, V> {
+        VacantEntry {node: node}
+    }
+    /// Sets the value of the entry with the VacantEntry's key,
+    /// and returns a mutable reference to it
+    pub fn insert(self, value: V) -> &'a mut V {
+        self.node.val = Some(value);
+        self.node.val.as_mut().unwrap()
+    }
+}
+
 

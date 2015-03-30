@@ -33,8 +33,6 @@ fn insert_same(b: &mut Bencher) {
     });
 }
 
-
-
 #[bench]
 fn get_same(b: &mut Bencher) {
     let mut m = prepare();
