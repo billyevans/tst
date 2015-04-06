@@ -4,7 +4,7 @@ Now it's first simplest implementation, that's the reason why it's reccursive.
 
 TODO:
 - iter_mut
-- keys iterator
-- values iterator
+- into_iter
 - upload to cargo
+- remove duplication of mut/immut implementations
 - make non-reccursive

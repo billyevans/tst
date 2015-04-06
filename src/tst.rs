@@ -4,6 +4,7 @@ use std::ops;
 use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
+use std::iter::{Map};
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -44,7 +45,7 @@ use self::Entry::*;
 #[derive(Clone)]
 pub struct TST<V> {
     root: Option<Box<Node<V>>>,
-    size: usize
+    size: usize,
 }
 
 impl<V> TST<V> {
@@ -69,7 +70,9 @@ impl<V> TST<V> {
     }
     pub fn remove(&mut self, key: &str) -> Option<V> {
         let ret = Node::remove(&mut self.root, key.chars().collect(), 0);
-        if ret.is_some() { self.size -= 1 }
+        if ret.is_some() {
+            self.size -= 1;
+        }
         ret
     }
     pub fn get(&self, key: &str) -> Option<&V> {
@@ -97,7 +100,7 @@ impl<V> TST<V> {
     }
     pub fn is_empty(&self) -> bool { self.size == 0 }
     pub fn clear(&mut self) { *self = TST::<V>::new(); }
-    pub fn longest_prefix<'r>(&self, pref: &'r str) -> &'r str {
+    pub fn longest_prefix<'a>(&self, pref: &'a str) -> &'a str {
         let mut length: usize = 0;
         let mut x = &self.root;
         let mut i: usize = 0;
@@ -105,7 +108,7 @@ impl<V> TST<V> {
             loop {
                 match *x {
                     None => {
-                        return pref.slice_to(length);
+                        return &pref[..length];
                     }
                     Some(ref r) => {
                         if k < r.c { x = &r.lt; }
@@ -121,31 +124,80 @@ impl<V> TST<V> {
 
             }
         }
-        return pref.slice_to(length);
+        return &pref[..length];
     }
+    /// get iterator over all values with common prefix
     pub fn iter_prefix(&self, pref: &str) -> Iter<V> {
         let node = Node::get_node(&self.root, pref.chars().collect(), 0);
         match node {
             None => Default::default(),
-            Some(ptr) => Iter::<V>::new(ptr, pref.slice_to(pref.len()-1), 0, self.len()),
+            Some(ptr) => Iter::<V>::new(ptr, &pref[..pref.len()-1], 0, self.len()),
         }
     }
     pub fn iter(&self) -> Iter<V> {
-        Iter::<V>::new(&self.root, "", self.len(), self.len())
+        let len = self.len();
+        Iter::<V>::new(&self.root, "", len, len)
+    }
+    /*
+    pub fn iter_mut(&mut self) -> IterMut<V> {
+        let len = self.len();
+        IterMut::<V>::new(&mut self.root, "", len, len)
+    }*/
+    /// An iterator visiting all keys in arbitrary order.
+    /// Iterator element type is String
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for key in m.keys() {
+    ///     println!("{}", key);
+    /// }
+    /// ```
+    pub fn keys(&self) -> Keys<V> {
+        fn first<A, B>((k, _): (A, B)) -> A { k }
+        Keys { iter: self.iter().map(first) }
+    }
+    /// An iterator visiting all keys in arbitrary order.
+    /// Iterator element type is String
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for key in m.keys() {
+    ///     println!("{}", key);
+    /// }
+    /// ```
+    pub fn values(&self) -> Values<V> {
+        fn second<A, B>((_, v): (A, B)) -> B { v }
+        Values { iter: self.iter().map(second) }
     }
 }
 
 impl<'x, V> ops::Index<&'x str> for TST<V> {
     type Output = V;
     #[inline]
-    fn index(&self, idx: &&str) -> &V {
+    fn index(&self, idx: &str) -> &V {
         self.get(idx).expect("no entry found for key")
     }
 }
 
 impl<'x, V> ops::IndexMut<&'x str> for TST<V> {
     #[inline]
-    fn index_mut(&mut self, idx: &&str) -> &mut V {
+    fn index_mut(&mut self, idx: &str) -> &mut V {
         self.get_mut(idx).expect("no entry found for key")
     }
 }
@@ -278,6 +330,7 @@ impl<V> Node<V> {
     }
 }
 
+/// TST iterator.
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
     stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>)>,
@@ -288,7 +341,7 @@ pub struct Iter<'a, V: 'a> {
 impl<'a, V> Iter<'a, V> {
     fn new(ptr: &'a Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> Iter<'a, V> {
         Iter {
-            stack: vec![(Some(ptr), String::from_str(prefix), None)],
+            stack: vec![(Some(ptr), prefix.to_string(), None)],
             min_size: min,
             max_size: max,
         }
@@ -327,7 +380,7 @@ impl<'a, V> Iterator for Iter<'a, V> {
                                 self.stack.push((Some(&cur.gt), node.1.clone(), None));
                             }
                             if cur.eq.is_some() || cur.val.is_some() {
-                                prefix.push_str(node.1.as_slice());
+                                prefix.push_str(&node.1);
                                 prefix.push(cur.c);
                             }
                             if cur.eq.is_some() {
@@ -351,16 +404,117 @@ impl<'a, V> Iterator for Iter<'a, V> {
     }
 }
 
+/*
+/// TST mutable values iterator.
+pub struct IterMut<'a, V: 'a> {
+    stack: Vec<(Option<&'a mut Option<Box<Node<V>>>>, String, Option<&'a mut V>)>,
+    min_size: usize,
+    max_size: usize,
+}
 
+impl<'a, V> IterMut<'a, V> {
+    fn new(ptr: &'a mut Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> IterMut<'a, V> {
+        IterMut {
+            stack: vec![(Some(ptr), String::from_str(prefix), None)],
+            min_size: min,
+            max_size: max,
+        }
+    }
+}
+
+impl<'a, V> Default for IterMut<'a, V> {
+    fn default() -> IterMut<'a, V> {
+        IterMut {
+            stack: vec![],
+            min_size: 0,
+            max_size: 0,
+        }
+    }
+}
+
+impl<'a, V> Iterator for IterMut<'a, V> {
+    type Item = (String, &'a mut V);
+    fn next(&mut self) -> Option<(String, &'a mut V)> {
+        while !self.stack.is_empty() {
+            let node = self.stack.pop().unwrap();
+            match node.0 {
+                None => {
+                    if self.min_size == self.max_size {
+                        self.min_size -= 1;
+                    }
+                    self.max_size -= 1;
+                    return Some((node.1, node.2.unwrap()));
+                }
+                Some(n) => {
+                    match *n {
+                        None => {}
+                        Some(ref cur) => {
+                            let mut prefix = String::new();
+                            if cur.gt.is_some() {
+                                self.stack.push((Some(&mut cur.gt), node.1.clone(), None));
+                            }
+                            if cur.eq.is_some() || cur.val.is_some() {
+                                prefix.push_str(node.1.as_slice());
+                                prefix.push(cur.c);
+                            }
+                            if cur.eq.is_some() {
+                                self.stack.push((Some(&mut cur.eq), prefix.clone(), None));
+                            }
+                            if cur.val.is_some() {
+                                self.stack.push((None, prefix, Some(cur.val.as_mut().unwrap())));
+                            }
+                            if cur.lt.is_some() {
+                                self.stack.push((Some(&mut cur.lt), node.1.clone(), None));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.min_size, Some(self.max_size))
+    }
+}
+*/
+
+/// TST keys iterator
+#[derive(Clone)]
+pub struct Keys<'a, V: 'a> {
+    iter: Map<Iter<'a, V>, fn((String, &'a V)) -> String>,
+}
+
+impl<'a, V:'a> Iterator for Keys<'a, V> {
+    type Item = String;
+    fn next(&mut self) -> Option<String> { self.iter.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+
+/// TST values iterator
+pub struct Values<'a, V:'a> {
+    iter: Map<Iter<'a, V>, fn((String, &'a V)) -> &'a V>,
+}
+
+impl<'a, V:'a> Iterator for Values<'a, V> {
+    type Item = &'a V;
+    fn next(&mut self) -> Option<&'a V> { self.iter.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+/// A view into a single occupied location in a TST.
 pub struct OccupiedEntry<'a, V: 'a> {
     node: &'a mut Box<Node<V>>,
     cont_size: &'a mut usize,
 }
 
+/// A view into a single empty location in a TST.
 pub struct VacantEntry<'a, V: 'a> {
     node: &'a mut Box<Node<V>>,
 }
 
+/// A view into a single location in a TST, which may be vacant or occupied.
 pub enum Entry<'a, V: 'a> {
     Occupied(OccupiedEntry<'a, V>),
     Vacant(VacantEntry<'a, V>),
@@ -415,7 +569,7 @@ impl<'a, V> OccupiedEntry<'a, V> {
         self.node.val.as_mut().unwrap()
     }
     /// Sets the value of the entry, and returns the entry's old value
-    pub fn insert(&mut self, mut value: V) -> V {
+    pub fn insert(&mut self, value: V) -> V {
         mem::replace(&mut self.node.val, Some(value)).unwrap()
     }
     /// Takes the value out of the entry, and returns it

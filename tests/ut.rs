@@ -1,8 +1,7 @@
 extern crate tst;
 
-#[cfg(test)]
-use tst::tst::TST;
-use tst::tst::Entry::*;
+use self::tst::tst::TST;
+use self::tst::tst::Entry::*;
 
 #[test]
 fn create_root() {
@@ -266,7 +265,7 @@ fn access_by_index_mut() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn access_by_wrong_index() {
     let mut m = TST::new();
 
@@ -311,11 +310,30 @@ fn iterator() {
 
     let mut m_str = String::new();
     for x in m.iter() {
-        m_str.push_str(format!("{:?}", x).as_slice());
+        m_str.push_str(&format!("{:?}", x));
         //println!();
     }
     assert_eq!("(\"a\", 1)(\"aa\", 13)(\"b\", 2)(\"c\", 4)", m_str);
 }
+
+/* FIXME:
+#[test]
+fn iterator_mut() {
+    let mut m = TST::new();
+
+    m.insert("b", 2);
+    m.insert("a", 1);
+    m.insert("c", 4);
+    m.insert("aa", 13);
+
+    for (&_, v) in m.iter_mut() {
+        *v *= 3;
+    }
+    assert_eq!(Some(&2), m.get("b"));
+    assert_eq!(Some(&2), m.get("a"));
+    assert_eq!(Some(&2), m.get("c"));
+    assert_eq!(Some(&2), m.get("aa"));
+}*/
 
 #[test]
 fn prefix_iterator_empty() {
@@ -327,7 +345,7 @@ fn prefix_iterator_empty() {
 
     let mut m_str = String::new();
     for x in m.iter_prefix("abd") {
-        m_str.push_str(format!("{:?}", x).as_slice());
+        m_str.push_str(&format!("{:?}", x));
     }
     assert_eq!("", m_str);
 }
@@ -340,24 +358,46 @@ fn prefix_iterator() {
     m.insert("second", 2);
     m.insert("firstthird", 3);
     m.insert("firstsecond", 12);
+
     let mut m_str = String::new();
 
     for x in m.iter_prefix("fir") {
-        m_str.push_str(format!("{:?}", x).as_slice());
+        m_str.push_str(&format!("{:?}", x));
     }
     assert_eq!("(\"first\", 1)(\"firstsecond\", 12)(\"firstthird\", 3)", m_str);
 }
-/*
-#[test]
-fn keys() {
-    let mut m = TST::<u32>::new();
-    m.insert("abc", &1);
-    m.insert("bcd", &2);
-    m.insert("c", &3);
-    m.insert("abcd", &1);
 
-    for key in m.keys() {
-        println!("{}", key);
+#[test]
+fn keys_iterator() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+    m.insert("bcd", 2);
+    m.insert("c", 3);
+    m.insert("abcd", 1);
+
+    let mut m_str = String::new();
+
+    for k in m.keys() {
+        m_str.push_str(&format!("{:?}", k));
     }
-}*/
+    assert_eq!("\"abc\"\"abcd\"\"bcd\"\"c\"", m_str);
+}
+
+#[test]
+fn values_iterator() {
+    let mut m = TST::new();
+    m.insert("abc", 1);
+    m.insert("bcd", 2);
+    m.insert("c", 3);
+    m.insert("abcd", 13);
+    m.insert("xxx", 130);
+
+    let mut m_str = String::new();
+
+    for v in m.values() {
+        m_str.push_str(&format!("{:?} ", v));
+    }
+    assert_eq!("1 13 2 3 130 ", m_str);
+}
+
 

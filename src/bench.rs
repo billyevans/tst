@@ -1,4 +1,5 @@
 #![cfg(test)]
+#![feature(test)]
 extern crate test;
 
 use tst::TST;
