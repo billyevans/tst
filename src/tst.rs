@@ -56,14 +56,16 @@ impl<V> TST<V> {
     pub fn len(&self) -> usize { self.size }
     // key must be non-empty string!
     pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
-        assert!(key.len() > 0);
+        assert!(key.len() > 0, "Empty key");
+        assert!(key.len() < 2000, "Key is too long");
+
         let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
         let ret = mem::replace(&mut cur.val, Some(val));
         if ret.is_none() { self.size += 1 }
         ret
     }
     pub fn entry(&mut self, key: &str) -> Entry<V> {
-        assert!(key.len() > 0);
+        assert!(key.len() > 0, "Empty key");
         let l = &mut self.size;
         let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
         Entry::<V>::new(cur, l)
@@ -280,6 +282,7 @@ impl<V> Node<V> {
 
     fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&mut V> {
         if i >= key.len() { return None; }
+
         match *node {
             None => None,
             Some(ref mut cur) => {

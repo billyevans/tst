@@ -400,4 +400,16 @@ fn values_iterator() {
     assert_eq!("1 13 2 3 130 ", m_str);
 }
 
+#[test]
+#[should_panic]
+fn  overflow_stack() {
+    let mut m = TST::<i32>::new();
+    let mut key = String::new();
+
+    while key.len() < 1000000 {
+        key.push_str("qwertyuiopasdfghjkl;");
+    }
+    m.insert(&key, 1);
+    assert_eq!(1, m.len());
+}
 
