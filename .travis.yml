@@ -1,4 +1,4 @@
 language: rust
-rust: 1.0.0-beta
+rust: 1.0.0
 script:
   - cargo test

@@ -36,7 +36,7 @@ use std::iter::{Map};
 /// assert_eq!("firstsecond", m.longest_prefix("firstsecondthird"));
 ///
 /// // get values with common prefix
-/// for (key, value) in m.iter_prefix("first") {
+/// for (key, value) in m.prefix_iter("first") {
 ///     println!("{}: {}", key, value);
 /// }
 /// ```
@@ -78,7 +78,7 @@ impl<V> TST<V> {
         ret
     }
     pub fn get(&self, key: &str) -> Option<&V> {
-        let node = Node::get_node(&self.root, key.chars().collect(), 0);
+        let node = Node::get(&self.root, key.chars().collect(), 0);
         match node {
             None => None,
             Some(ptr) => {
@@ -95,7 +95,21 @@ impl<V> TST<V> {
         }
     }
     pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
-        Node::get_mut(&mut self.root, key.chars().collect(), 0)
+        let node = Node::get_mut(&mut self.root, key.chars().collect(), 0);
+        match node {
+            None => None,
+            Some(ptr) => {
+                match *ptr {
+                    None => None,
+                    Some(ref mut cur) => {
+                        match cur.val {
+                            None => None,
+                            Some(ref mut r) => Some(r)
+                        }
+                    }
+                 }
+            }
+        }
     }
     pub fn contains_key(&self, key: &str) -> bool {
         self.get(key).is_some()
@@ -129,22 +143,56 @@ impl<V> TST<V> {
         return &pref[..length];
     }
     /// get iterator over all values with common prefix
-    pub fn iter_prefix(&self, pref: &str) -> Iter<V> {
-        let node = Node::get_node(&self.root, pref.chars().collect(), 0);
+    pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
+        let node = Node::get(&self.root, pref.chars().collect(), 0);
         match node {
             None => Default::default(),
             Some(ptr) => Iter::<V>::new(ptr, &pref[..pref.len()-1], 0, self.len()),
+        }
+    }
+    pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
+        let len = self.len();
+        let node = Node::get_mut(&mut self.root, pref.chars().collect(), 0);
+        match node {
+            None => Default::default(),
+            Some(ptr) => IterMut::<V>::new(ptr, &pref[..pref.len()-1], 0, len),
         }
     }
     pub fn iter(&self) -> Iter<V> {
         let len = self.len();
         Iter::<V>::new(&self.root, "", len, len)
     }
-    /*
+
     pub fn iter_mut(&mut self) -> IterMut<V> {
         let len = self.len();
         IterMut::<V>::new(&mut self.root, "", len, len)
+    }
+    /*
+    /// Creates a consuming iterator, that is, one that moves each key-value
+    /// pair out of the TST in arbitrary order. The TST cannot be used after
+    /// calling this.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// let vec: Vec<(String, isize)> = m.into_iter().collect();
+    /// ```
+    pub fn into_iter(self) -> IntoIter<V> {
+        fn last_two<A, B, C>((_, b, c): (A, B, C)) -> (B, C) { (b, c) }
+        let last_two: fn((SafeHash, K, V)) -> (K, V) = last_two;
+
+        IntoIter {
+            inner: self.table.into_iter().map(last_two)
+        }
     }*/
+
     /// An iterator visiting all keys in arbitrary order.
     /// Iterator element type is String
     ///
@@ -256,8 +304,8 @@ impl<V> Node<V> {
             }
         }
     }
-    fn get_node(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
-            Option<&Option<Box<Node<V>>>> 
+    fn get(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
+            Option<&Option<Box<Node<V>>>>
     {
         if i >= key.len() { return None; }
         match *node {
@@ -265,13 +313,13 @@ impl<V> Node<V> {
             Some(ref cur) => {
                 let k = key[i];
                 if k < cur.c {
-                    Node::get_node(&cur.lt, key, i)
+                    Node::get(&cur.lt, key, i)
                 }
                 else if k > cur.c {
-                    Node::get_node(&cur.gt, key, i)
+                    Node::get(&cur.gt, key, i)
                 }
                 else if i + 1 < key.len() {
-                    Node::get_node(&cur.eq, key, i+1)
+                    Node::get(&cur.eq, key, i+1)
                 }
                 else {
                     Some(node)
@@ -280,30 +328,10 @@ impl<V> Node<V> {
         }
     }
 
-    fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<&mut V> {
-        if i >= key.len() { return None; }
-
-        match *node {
-            None => None,
-            Some(ref mut cur) => {
-                let k = key[i];
-                if k < cur.c {
-                    Node::get_mut(&mut cur.lt, key, i)
-                }
-                else if k > cur.c {
-                    Node::get_mut(&mut cur.gt, key, i)
-                }
-                else if i + 1 < key.len() {
-                    Node::get_mut(&mut cur.eq, key, i+1)
-                }
-                else {
-                    match cur.val {
-                        None => None,
-                        Some(ref mut r) => Some(r)
-                    }
-                }
-            }
-        }
+    fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
+            Option<&mut Option<Box<Node<V>>>>
+    {
+        unsafe { mem::transmute(Node::get(node, key, i)) }
     }
 
     // TODO: add shrink all tails
@@ -407,20 +435,16 @@ impl<'a, V> Iterator for Iter<'a, V> {
     }
 }
 
-/*
+
 /// TST mutable values iterator.
 pub struct IterMut<'a, V: 'a> {
-    stack: Vec<(Option<&'a mut Option<Box<Node<V>>>>, String, Option<&'a mut V>)>,
-    min_size: usize,
-    max_size: usize,
+    iter: Iter<'a, V>,
 }
 
 impl<'a, V> IterMut<'a, V> {
     fn new(ptr: &'a mut Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> IterMut<'a, V> {
         IterMut {
-            stack: vec![(Some(ptr), String::from_str(prefix), None)],
-            min_size: min,
-            max_size: max,
+            iter : Iter::<V>::new(ptr, prefix, min, max),
         }
     }
 }
@@ -428,9 +452,7 @@ impl<'a, V> IterMut<'a, V> {
 impl<'a, V> Default for IterMut<'a, V> {
     fn default() -> IterMut<'a, V> {
         IterMut {
-            stack: vec![],
-            min_size: 0,
-            max_size: 0,
+            iter : Default::default(),
         }
     }
 }
@@ -438,49 +460,13 @@ impl<'a, V> Default for IterMut<'a, V> {
 impl<'a, V> Iterator for IterMut<'a, V> {
     type Item = (String, &'a mut V);
     fn next(&mut self) -> Option<(String, &'a mut V)> {
-        while !self.stack.is_empty() {
-            let node = self.stack.pop().unwrap();
-            match node.0 {
-                None => {
-                    if self.min_size == self.max_size {
-                        self.min_size -= 1;
-                    }
-                    self.max_size -= 1;
-                    return Some((node.1, node.2.unwrap()));
-                }
-                Some(n) => {
-                    match *n {
-                        None => {}
-                        Some(ref cur) => {
-                            let mut prefix = String::new();
-                            if cur.gt.is_some() {
-                                self.stack.push((Some(&mut cur.gt), node.1.clone(), None));
-                            }
-                            if cur.eq.is_some() || cur.val.is_some() {
-                                prefix.push_str(node.1.as_slice());
-                                prefix.push(cur.c);
-                            }
-                            if cur.eq.is_some() {
-                                self.stack.push((Some(&mut cur.eq), prefix.clone(), None));
-                            }
-                            if cur.val.is_some() {
-                                self.stack.push((None, prefix, Some(cur.val.as_mut().unwrap())));
-                            }
-                            if cur.lt.is_some() {
-                                self.stack.push((Some(&mut cur.lt), node.1.clone(), None));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        None
+        // just add mut, avoid copy-paste
+        unsafe { mem::transmute(self.iter.next()) }
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.min_size, Some(self.max_size))
+        self.iter.size_hint()
     }
 }
-*/
 
 /// TST keys iterator
 #[derive(Clone)]

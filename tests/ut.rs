@@ -316,7 +316,6 @@ fn iterator() {
     assert_eq!("(\"a\", 1)(\"aa\", 13)(\"b\", 2)(\"c\", 4)", m_str);
 }
 
-/* FIXME:
 #[test]
 fn iterator_mut() {
     let mut m = TST::new();
@@ -326,14 +325,14 @@ fn iterator_mut() {
     m.insert("c", 4);
     m.insert("aa", 13);
 
-    for (&_, v) in m.iter_mut() {
+    for (_, v) in m.iter_mut() {
         *v *= 3;
     }
-    assert_eq!(Some(&2), m.get("b"));
-    assert_eq!(Some(&2), m.get("a"));
-    assert_eq!(Some(&2), m.get("c"));
-    assert_eq!(Some(&2), m.get("aa"));
-}*/
+    assert_eq!(Some(&6), m.get("b"));
+    assert_eq!(Some(&3), m.get("a"));
+    assert_eq!(Some(&12), m.get("c"));
+    assert_eq!(Some(&39), m.get("aa"));
+}
 
 #[test]
 fn prefix_iterator_empty() {
@@ -344,7 +343,7 @@ fn prefix_iterator_empty() {
     m.insert("dbc", 4);
 
     let mut m_str = String::new();
-    for x in m.iter_prefix("abd") {
+    for x in m.prefix_iter("abd") {
         m_str.push_str(&format!("{:?}", x));
     }
     assert_eq!("", m_str);
@@ -361,10 +360,28 @@ fn prefix_iterator() {
 
     let mut m_str = String::new();
 
-    for x in m.iter_prefix("fir") {
+    for x in m.prefix_iter("fir") {
         m_str.push_str(&format!("{:?}", x));
     }
     assert_eq!("(\"first\", 1)(\"firstsecond\", 12)(\"firstthird\", 3)", m_str);
+}
+
+#[test]
+fn prefix_iterator_mut() {
+    let mut m = TST::new();
+
+    m.insert("first", 1);
+    m.insert("second", 2);
+    m.insert("firstthird", 3);
+    m.insert("firstsecond", 12);
+
+    for x in m.prefix_iter_mut("fir") {
+        *x.1 -= 13;
+    }
+    assert_eq!(Some(&-12), m.get("first"));
+    assert_eq!(Some(&2), m.get("second"));
+    assert_eq!(Some(&-10), m.get("firstthird"));
+    assert_eq!(Some(&-1), m.get("firstsecond"));
 }
 
 #[test]
