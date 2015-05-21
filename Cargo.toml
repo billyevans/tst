@@ -1,5 +1,11 @@
 [package]
 
 name = "tst"
-version = "0.1"
+version = "0.1.0"
 authors = ["Alexey Pervushin <pervushinai@gmail.com>"]
+readme = "README.md"
+license = "MIT/Apache-2.0"
+description = "Ternary search tree collection in rust with similar API to std::collections as it possible"
+keywords = ["data-structures"]
+repository = "https://github.com/billyevans/tst"
+homepage = "https://github.com/billyevans/tst"
