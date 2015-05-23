@@ -107,7 +107,7 @@ impl<V> TST<V> {
                             Some(ref mut r) => Some(r)
                         }
                     }
-                 }
+                }
             }
         }
     }
@@ -145,9 +145,10 @@ impl<V> TST<V> {
     /// get iterator over all values with common prefix
     pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
         let node = Node::get(&self.root, pref.chars().collect(), 0);
+
         match node {
             None => Default::default(),
-            Some(ptr) => Iter::<V>::new(ptr, &pref[..pref.len()-1], 0, self.len()),
+            Some(ptr) => Iter::<V>::new_prefix(ptr, pref, self.len())
         }
     }
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
@@ -155,17 +156,17 @@ impl<V> TST<V> {
         let node = Node::get_mut(&mut self.root, pref.chars().collect(), 0);
         match node {
             None => Default::default(),
-            Some(ptr) => IterMut::<V>::new(ptr, &pref[..pref.len()-1], 0, len),
+            Some(ptr) => IterMut::<V>::new_prefix(ptr, pref, len),
         }
     }
     pub fn iter(&self) -> Iter<V> {
         let len = self.len();
-        Iter::<V>::new(&self.root, "", len, len)
+        Iter::<V>::new(&self.root, len, len)
     }
 
     pub fn iter_mut(&mut self) -> IterMut<V> {
         let len = self.len();
-        IterMut::<V>::new(&mut self.root, "", len, len)
+        IterMut::<V>::new(&mut self.root, len, len)
     }
     /*
     /// Creates a consuming iterator, that is, one that moves each key-value
@@ -361,6 +362,15 @@ impl<V> Node<V> {
     }
 }
 
+impl<V: Debug> Debug for Node<V> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        try!(write!(f, "{{\n"));
+        try!(write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
+            self.lt, self.eq, self.gt, self.val, self.c));
+        (write!(f, "}}\n"))
+    }
+}
+
 /// TST iterator.
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
@@ -370,12 +380,30 @@ pub struct Iter<'a, V: 'a> {
 }
 
 impl<'a, V> Iter<'a, V> {
-    fn new(ptr: &'a Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> Iter<'a, V> {
+    fn new(ptr: &'a Option<Box<Node<V>>>, min: usize, max: usize) -> Iter<'a, V> {
         Iter {
-            stack: vec![(Some(ptr), prefix.to_string(), None)],
+            stack: vec![(Some(ptr), "".to_string(), None)],
             min_size: min,
             max_size: max,
         }
+    }
+    fn new_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> Iter<'a, V> {
+        let mut iter: Iter<V> = Default::default();
+        match *ptr {
+            None => (),
+            Some(ref cur) => {
+                iter.max_size = max;
+                if cur.val.is_some() {
+                    iter.min_size += 1;
+                    iter.stack.push((None, prefix.to_string(), Some(cur.val.as_ref().unwrap())));
+                }
+                if cur.eq.is_some() {
+                    iter.stack.push((Some(&cur.eq), prefix.to_string(), None));
+                }
+
+            }
+        }
+        iter
     }
 }
 
@@ -442,9 +470,14 @@ pub struct IterMut<'a, V: 'a> {
 }
 
 impl<'a, V> IterMut<'a, V> {
-    fn new(ptr: &'a mut Option<Box<Node<V>>>, prefix: &str, min: usize, max: usize) -> IterMut<'a, V> {
+    fn new(ptr: &'a mut Option<Box<Node<V>>>, min: usize, max: usize) -> IterMut<'a, V> {
         IterMut {
-            iter : Iter::<V>::new(ptr, prefix, min, max),
+            iter : Iter::<V>::new(ptr, min, max),
+        }
+    }
+    fn new_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> IterMut<'a, V> {
+        IterMut {
+            iter : Iter::<V>::new_prefix(ptr, prefix, max),
         }
     }
 }

@@ -367,6 +367,32 @@ fn prefix_iterator() {
 }
 
 #[test]
+fn prefix_iterator_only_one() {
+    let mut m = TST::new();
+
+    m.insert("BY", 1);
+    m.insert("BYE", 2);
+    m.insert("BYGONE", 3);
+    m.insert("BYLAW", 4);
+    m.insert("BYLINE", 5);
+    m.insert("BYPASS", 6);
+    m.insert("BYPATH", 7);
+    m.insert("BYPRODUCT", 8);
+    m.insert("BYROAD", 9);
+    m.insert("BYSTANDER", 10);
+    m.insert("BYTE", 11);
+    m.insert("BYWAY", 12);
+    m.insert("BYWORD", 13);
+
+    let mut m_str = String::new();
+
+    for x in m.prefix_iter("BYE") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("(\"BYE\", 2)", m_str);
+}
+
+#[test]
 fn prefix_iterator_mut() {
     let mut m = TST::new();
 
