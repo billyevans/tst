@@ -118,6 +118,44 @@ impl<V> TST<V> {
     }
     pub fn is_empty(&self) -> bool { self.size == 0 }
     pub fn clear(&mut self) { *self = TST::<V>::new(); }
+
+    /// An iterator returning all nodes matching wildcard pattern.
+    /// Iterator element type is (String, V)
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for (k, v) in m.wildcard_iter(".") {
+    ///     println!("{} -> {}", k, v);
+    /// }
+    /// ```
+    pub fn wildcard_iter(&self, pat: &str) -> WildCardIter<V> {
+        WildCardIter::<V>::new(&self.root, pat, self.len())
+    }
+    /// Method returns longest prefix in TST
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// m.insert("abcd", 1);
+    /// m.insert("abce", 1);
+    /// m.insert("abca", 1);
+    /// m.insert("zxd", 1);
+    /// m.insert("add", 1);
+    /// m.insert("abcdef", 1);
+    ///
+    /// assert_eq!("abcd", m.longest_prefix("abcde"));
+    /// ```
     pub fn longest_prefix<'a>(&self, pref: &'a str) -> &'a str {
         let mut length: usize = 0;
         let mut x = &self.root;
@@ -150,7 +188,7 @@ impl<V> TST<V> {
 
         match node {
             None => Default::default(),
-            Some(ptr) => Iter::<V>::new_prefix(ptr, pref, self.len())
+            Some(ptr) => Iter::<V>::new_with_prefix(ptr, pref, self.len())
         }
     }
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
@@ -158,7 +196,7 @@ impl<V> TST<V> {
         let node = Node::get_mut(&mut self.root, pref.chars().collect(), 0);
         match node {
             None => Default::default(),
-            Some(ptr) => IterMut::<V>::new_prefix(ptr, pref, len),
+            Some(ptr) => IterMut::<V>::new_with_prefix(ptr, pref, len),
         }
     }
     pub fn iter(&self) -> Iter<V> {
@@ -389,7 +427,7 @@ impl<'a, V> Iter<'a, V> {
             max_size: max,
         }
     }
-    fn new_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> Iter<'a, V> {
+    fn new_with_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> Iter<'a, V> {
         let mut iter: Iter<V> = Default::default();
         match *ptr {
             None => (),
@@ -477,9 +515,9 @@ impl<'a, V> IterMut<'a, V> {
             iter : Iter::<V>::new(ptr, min, max),
         }
     }
-    fn new_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> IterMut<'a, V> {
+    fn new_with_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> IterMut<'a, V> {
         IterMut {
-            iter : Iter::<V>::new_prefix(ptr, prefix, max),
+            iter : Iter::<V>::new_with_prefix(ptr, prefix, max),
         }
     }
 }
@@ -526,6 +564,92 @@ impl<'a, V:'a> Iterator for Values<'a, V> {
     fn next(&mut self) -> Option<&'a V> { self.iter.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
+
+/// TST wild-card iterator.
+#[derive(Clone)]
+pub struct WildCardIter<'a, V: 'a> {
+    stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>, usize)>,
+    min_size: usize,
+    max_size: usize,
+    pat: Vec<char>,
+}
+
+impl<'a, V> WildCardIter<'a, V> {
+    fn new(ptr: &'a Option<Box<Node<V>>>, pat: &str, max: usize) -> WildCardIter<'a, V> {
+        WildCardIter {
+            stack: vec![(Some(ptr), "".to_string(), None, 0)],
+            min_size: 0,
+            max_size: max,
+            pat: pat.chars().collect(),
+        }
+    }
+}
+ /*
+    public void collect(Node x, String prefix, int i, String pat, Queue<String> q) {
+        if (x == null) return;
+        char c = pat.charAt(i);
+        if (c == '.' || c < x.c) collect(x.left, prefix, i, pat, q);
+        if (c == '.' || c == x.c) {
+            if (i == pat.length() - 1 && x.val != null) q.enqueue(prefix + x.c);
+            if (i < pat.length() - 1) collect(x.mid, prefix + x.c, i+1, pat, q);
+        }
+        if (c == '.' || c > x.c) collect(x.right, prefix, i, pat, q);
+    }*/
+
+impl<'a, V> Iterator for WildCardIter<'a, V> {
+    type Item = (String, &'a V);
+    fn next(&mut self) -> Option<(String, &'a V)> {
+        while !self.stack.is_empty() {
+            let node = self.stack.pop().unwrap();
+            match node.0 {
+                None => {
+                    if self.min_size == self.max_size {
+                        self.min_size -= 1;
+                    }
+                    self.max_size -= 1;
+                    return Some((node.1, node.2.unwrap()));
+                }
+                Some(n) => {
+                    match *n {
+                        None => {}
+                        Some(ref cur) => {
+                            let idx = node.3;
+                            let ch = self.pat[idx];
+                            let mut prefix = String::new();
+                            if (ch == '.' || ch > cur.c) && cur.gt.is_some() {
+                                self.stack.push((Some(&cur.gt), node.1.clone(), None, idx));
+                            }
+                            if ch == '.' || ch == cur.c {
+                                if
+                                    (idx+1 < self.pat.len() && cur.eq.is_some()) ||
+                                    (idx+1 == self.pat.len() && cur.val.is_some())
+                                {
+                                    prefix.push_str(&node.1);
+                                    prefix.push(cur.c);
+                                }
+                                if idx+1 < self.pat.len() && cur.eq.is_some() {
+                                    self.stack.push((Some(&cur.eq), prefix.clone(), None, idx+1));
+                                }
+
+                                if idx+1 == self.pat.len() && cur.val.is_some() {
+                                    self.stack.push((None, prefix, Some(cur.val.as_ref().unwrap()), idx));
+                                }
+                            }
+                            if (ch == '.' || ch < cur.c) && cur.lt.is_some() {
+                                self.stack.push((Some(&cur.lt), node.1.clone(), None, idx));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.min_size, Some(self.max_size))
+    }
+}
+
 
 /// A view into a single occupied location in a TST.
 pub struct OccupiedEntry<'a, V: 'a> {
@@ -614,6 +738,3 @@ impl<'a, V> VacantEntry<'a, V> {
         self.node.val.as_mut().unwrap()
     }
 }
-
-
-

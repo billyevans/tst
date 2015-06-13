@@ -28,7 +28,7 @@ macro_rules! tstmap {
     ($( $key: expr => $val: expr ),*) => {{
         let mut m = $crate::tst::TST::new();
         $(
-            m.insert($key, $val); 
+            m.insert($key, $val);
         )*
         m
     }};

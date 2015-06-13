@@ -427,12 +427,13 @@ fn keys_iterator() {
 
 #[test]
 fn values_iterator() {
-    let mut m = TST::new();
-    m.insert("abc", 1);
-    m.insert("bcd", 2);
-    m.insert("c", 3);
-    m.insert("abcd", 13);
-    m.insert("xxx", 130);
+    let m = tstmap! {
+        "abc" => 1,
+        "bcd" => 2,
+        "c" => 3,
+        "abcd" => 13,
+        "xxx" => 130,
+    };
 
     let mut m_str = String::new();
 
@@ -440,6 +441,77 @@ fn values_iterator() {
         m_str.push_str(&format!("{:?} ", v));
     }
     assert_eq!("1 13 2 3 130 ", m_str);
+}
+
+#[test]
+fn wild_card_iterator_simple() {
+    let m = tstmap!{
+        "x" => 1,
+        "y" => 2,
+    };
+
+    let mut m_str = String::new();
+
+    for x in m.wildcard_iter(".") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("(\"x\", 1)(\"y\", 2)", m_str);
+}
+
+#[test]
+fn wild_card_iterator() {
+    let m = tstmap! {
+        "BY" => 1,
+        "BYE" => 2,
+        "BYGONE" => 3,
+        "BYLAW" => 4,
+        "BYLINE" => 5,
+        "BYPASS" => 6,
+        "BYPATH" => 7,
+        "BYPRODUCT" => 8,
+        "BYROAD" => 9,
+        "BYSTANDER" => 10,
+        "BYTE" => 11,
+        "BYWAY" => 12,
+        "BYWORD" => 13,
+    };
+
+    let mut m_str = String::new();
+
+    for x in m.wildcard_iter("BYPA..") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("(\"BYPASS\", 6)(\"BYPATH\", 7)", m_str);
+}
+
+#[test]
+fn wild_card_iterator_dot_in_begin() {
+    let m = tstmap!{
+        "bac" => 1,
+        "aac" => 2,
+    };
+
+    let mut m_str = String::new();
+
+    for x in m.wildcard_iter(".ac") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("(\"aac\", 2)(\"bac\", 1)", m_str);
+}
+
+#[test]
+fn wild_card_iterator_empty() {
+    let m = tstmap!{
+        "BY" => 1,
+        "BYE" => 2,
+    };
+
+    let mut m_str = String::new();
+
+    for x in m.wildcard_iter("BY..") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("", m_str);
 }
 
 #[test]
