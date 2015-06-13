@@ -1,6 +1,6 @@
-extern crate tst;
+#[macro_use] extern crate tst;
 
-use self::tst::tst::TST;
+use self::tst::TST;
 use self::tst::tst::Entry::*;
 
 #[test]
@@ -311,7 +311,6 @@ fn iterator() {
     let mut m_str = String::new();
     for x in m.iter() {
         m_str.push_str(&format!("{:?}", x));
-        //println!();
     }
     assert_eq!("(\"a\", 1)(\"aa\", 13)(\"b\", 2)(\"c\", 4)", m_str);
 }
@@ -441,6 +440,83 @@ fn values_iterator() {
         m_str.push_str(&format!("{:?} ", v));
     }
     assert_eq!("1 13 2 3 130 ", m_str);
+}
+
+#[test]
+fn eq_empty() {
+    let m1 = TST::<i32>::new();
+    let m2 = TST::<i32>::new();
+    assert_eq!(m1, m2);
+}
+
+#[test]
+fn eq_non_empty() {
+    let mut m1 = TST::<i32>::new();
+    let mut m2 = TST::<i32>::new();
+
+    m2.insert("abcdef", 100);
+    m2.insert("xxx", 2);
+    m1.insert("abcdef", 100);
+    m1.insert("xxx", 2);
+
+    assert_eq!(m1, m2);
+}
+
+#[test]
+fn not_eq() {
+    let m1 = TST::<i32>::new();
+    let mut m2 = TST::<i32>::new();
+
+    m2.insert("xxx", 2);
+
+    assert!(m1 != m2);
+}
+
+#[test]
+fn not_eq_different_order() {
+    let mut m1 = TST::<i32>::new();
+    let mut m2 = TST::<i32>::new();
+
+    m2.insert("abcdef", 100);
+    m2.insert("xxx", 2);
+    m1.insert("xxx", 2);
+    m1.insert("abcdef", 100);
+
+    assert!(m1 != m2);
+}
+
+#[test]
+fn not_eq_only_value() {
+    let mut m1 = TST::<i32>::new();
+    let mut m2 = TST::<i32>::new();
+
+    m2.insert("abcdef", 100);
+    m2.insert("xxx", 2);
+    m1.insert("abcdef", -100);
+    m1.insert("xxx", 2);
+
+    assert!(m1 != m2);
+}
+
+#[test]
+fn macros_ctor_empty() {
+    let m: TST<u64> = tstmap![];
+
+    assert_eq!(0, m.len());
+    assert_eq!(None, m.get("abc"));
+}
+
+#[test]
+fn macros_ctor() {
+    let m = tstmap!["x" => -100, "a" => 13, "abc" => 0, "z" => 2, "abcd" => 666];
+
+    assert_eq!(5, m.len());
+    assert_eq!(Some(&13), m.get("a"));
+    assert_eq!(None, m.get("ab"));
+    assert_eq!(Some(&0), m.get("abc"));
+    assert_eq!(Some(&-100), m.get("x"));
+    assert_eq!(Some(&2), m.get("z"));
+    assert_eq!(Some(&666), m.get("abcd"));
 }
 
 #[test]

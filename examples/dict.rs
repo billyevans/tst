@@ -9,8 +9,15 @@ use std::io::prelude::*;
 
 fn match_prefix(m: &TST<u8>, prefix: &str) {
     println!("match('{}'):", prefix);
-    for (k, _) in m.prefix_iter(prefix) {
-        println!("{}", k);
+    if prefix.len() > 0 {
+        for (k, _) in m.prefix_iter(prefix) {
+            println!("{}", k);
+        }
+    }
+    else {
+        for (k, _) in m.iter() {
+            println!("{}", k);
+        }
     }
 }
 

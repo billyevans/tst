@@ -41,8 +41,10 @@ use std::iter::{Map};
 /// }
 /// ```
 
+// by design TST depends on order of inserts in it, not only on keys and data itself
 
-#[derive(Clone)]
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct TST<V> {
     root: Option<Box<Node<V>>>,
     size: usize,
@@ -263,7 +265,7 @@ impl<V: Debug> Debug for TST<V> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 struct Node<V> {
     lt: Option<Box<Node<V>>>,
     eq: Option<Box<Node<V>>>,
@@ -612,5 +614,6 @@ impl<'a, V> VacantEntry<'a, V> {
         self.node.val.as_mut().unwrap()
     }
 }
+
 
 
