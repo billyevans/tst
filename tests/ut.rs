@@ -3,6 +3,24 @@
 use self::tst::TST;
 use self::tst::tst::Entry::*;
 
+fn prepare_data() -> TST<i32> {
+    tstmap! {
+        "BY" => 1,
+        "BYGONE" => 3,
+        "BYE" => 2,
+        "BYLAW" => 4,
+        "BYLINE" => 5,
+        "BYPASS" => 6,
+        "BYPATH" => 7,
+        "BYPRODUCT" => 8,
+        "BYROAD" => 9,
+        "BYSTANDER" => 10,
+        "BYTE" => 11,
+        "BYWAY" => 12,
+        "BYWORD" => 13,
+    }
+}
+
 #[test]
 fn create_root() {
     let m = TST::<i32>::new();
@@ -196,18 +214,34 @@ fn remove_from_empty() {
 }
 
 #[test]
-fn remove() {
-    let mut m = TST::new();
-    m.insert("abc", 1);
+fn remove_non_existing() {
+    let mut m = tstmap!["abc" => 1];
 
     assert_eq!(None, m.remove(""));
     assert_eq!(None, m.remove("a"));
     assert_eq!(None, m.remove("ab"));
+}
+
+#[test]
+fn remove() {
+    let mut m = tstmap!["abc" => 1];
 
     assert_eq!(Some(1), m.remove("abc"));
-
+    assert_eq!(None, m.get("abc"));
     assert_eq!(None, m.remove("abc"));
     assert_eq!(None, m.get("abc"));
+}
+
+#[test]
+fn remove_rich() {
+    let mut m = prepare_data();
+
+    assert_eq!(Some(1), m.remove("BY"));
+    assert_eq!(Some(12), m.remove("BYWAY"));
+    assert_eq!(Some(10), m.remove("BYSTANDER"));
+    assert_eq!(Some(8), m.remove("BYPRODUCT"));
+    assert_eq!(Some(2), m.remove("BYE"));
+    assert_eq!(8, m.len());
 }
 
 #[test]
@@ -367,22 +401,7 @@ fn prefix_iterator() {
 
 #[test]
 fn prefix_iterator_only_one() {
-    let mut m = TST::new();
-
-    m.insert("BY", 1);
-    m.insert("BYE", 2);
-    m.insert("BYGONE", 3);
-    m.insert("BYLAW", 4);
-    m.insert("BYLINE", 5);
-    m.insert("BYPASS", 6);
-    m.insert("BYPATH", 7);
-    m.insert("BYPRODUCT", 8);
-    m.insert("BYROAD", 9);
-    m.insert("BYSTANDER", 10);
-    m.insert("BYTE", 11);
-    m.insert("BYWAY", 12);
-    m.insert("BYWORD", 13);
-
+    let m = prepare_data();
     let mut m_str = String::new();
 
     for x in m.prefix_iter("BYE") {
@@ -408,6 +427,24 @@ fn prefix_iterator_mut() {
     assert_eq!(Some(&-10), m.get("firstthird"));
     assert_eq!(Some(&-1), m.get("firstsecond"));
 }
+
+#[test]
+fn prefix_iterator_mut_empty() {
+    let orig = tstmap! {
+        "first" => 1,
+        "second" => 2,
+        "firstthird" => 3,
+        "firstsecond" => 12,
+    };
+
+    let mut m = orig.clone();
+    for x in m.prefix_iter_mut("third!") {
+        *x.1 -= 13;
+    }
+    assert_eq!(orig, m);
+}
+
+
 
 #[test]
 fn keys_iterator() {
@@ -460,22 +497,7 @@ fn wild_card_iterator_simple() {
 
 #[test]
 fn wild_card_iterator() {
-    let m = tstmap! {
-        "BY" => 1,
-        "BYE" => 2,
-        "BYGONE" => 3,
-        "BYLAW" => 4,
-        "BYLINE" => 5,
-        "BYPASS" => 6,
-        "BYPATH" => 7,
-        "BYPRODUCT" => 8,
-        "BYROAD" => 9,
-        "BYSTANDER" => 10,
-        "BYTE" => 11,
-        "BYWAY" => 12,
-        "BYWORD" => 13,
-    };
-
+    let m = prepare_data();
     let mut m_str = String::new();
 
     for x in m.wildcard_iter("BYPA..") {

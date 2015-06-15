@@ -569,7 +569,6 @@ impl<'a, V:'a> Iterator for Values<'a, V> {
 #[derive(Clone)]
 pub struct WildCardIter<'a, V: 'a> {
     stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>, usize)>,
-    min_size: usize,
     max_size: usize,
     pat: Vec<char>,
 }
@@ -578,23 +577,11 @@ impl<'a, V> WildCardIter<'a, V> {
     fn new(ptr: &'a Option<Box<Node<V>>>, pat: &str, max: usize) -> WildCardIter<'a, V> {
         WildCardIter {
             stack: vec![(Some(ptr), "".to_string(), None, 0)],
-            min_size: 0,
             max_size: max,
             pat: pat.chars().collect(),
         }
     }
 }
- /*
-    public void collect(Node x, String prefix, int i, String pat, Queue<String> q) {
-        if (x == null) return;
-        char c = pat.charAt(i);
-        if (c == '.' || c < x.c) collect(x.left, prefix, i, pat, q);
-        if (c == '.' || c == x.c) {
-            if (i == pat.length() - 1 && x.val != null) q.enqueue(prefix + x.c);
-            if (i < pat.length() - 1) collect(x.mid, prefix + x.c, i+1, pat, q);
-        }
-        if (c == '.' || c > x.c) collect(x.right, prefix, i, pat, q);
-    }*/
 
 impl<'a, V> Iterator for WildCardIter<'a, V> {
     type Item = (String, &'a V);
@@ -603,9 +590,6 @@ impl<'a, V> Iterator for WildCardIter<'a, V> {
             let node = self.stack.pop().unwrap();
             match node.0 {
                 None => {
-                    if self.min_size == self.max_size {
-                        self.min_size -= 1;
-                    }
                     self.max_size -= 1;
                     return Some((node.1, node.2.unwrap()));
                 }
@@ -646,7 +630,7 @@ impl<'a, V> Iterator for WildCardIter<'a, V> {
         None
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.min_size, Some(self.max_size))
+        (0, Some(self.max_size))
     }
 }
 
