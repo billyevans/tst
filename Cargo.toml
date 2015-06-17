@@ -2,6 +2,7 @@
 
 name = "tst"
 version = "0.2.0"
+
 authors = ["Alexey Pervushin <pervushinai@gmail.com>"]
 readme = "README.md"
 license = "MIT/Apache-2.0"
@@ -9,3 +10,4 @@ description = "Ternary search tree collection in rust with similar API to std::c
 keywords = ["data-structures"]
 repository = "https://github.com/billyevans/tst"
 homepage = "https://github.com/billyevans/tst"
+
