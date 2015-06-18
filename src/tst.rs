@@ -4,7 +4,7 @@ use std::ops;
 use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
-use std::iter::{Map};
+use std::iter::{Map, FromIterator};
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -208,7 +208,7 @@ impl<V> TST<V> {
         let len = self.len();
         IterMut::<V>::new(&mut self.root, len, len)
     }
-    /*
+/*
     /// Creates a consuming iterator, that is, one that moves each key-value
     /// pair out of the TST in arbitrary order. The TST cannot be used after
     /// calling this.
@@ -226,14 +226,11 @@ impl<V> TST<V> {
     /// let vec: Vec<(String, isize)> = m.into_iter().collect();
     /// ```
     pub fn into_iter(self) -> IntoIter<V> {
-        fn last_two<A, B, C>((_, b, c): (A, B, C)) -> (B, C) { (b, c) }
-        let last_two: fn((SafeHash, K, V)) -> (K, V) = last_two;
-
         IntoIter {
             inner: self.table.into_iter().map(last_two)
         }
-    }*/
-
+    }
+*/
     /// An iterator visiting all keys in arbitrary order.
     /// Iterator element type is String
     ///
@@ -275,6 +272,25 @@ impl<V> TST<V> {
     pub fn values(&self) -> Values<V> {
         fn second<A, B>((_, v): (A, B)) -> B { v }
         Values { iter: self.iter().map(second) }
+    }
+}
+
+impl<'x, V> FromIterator<(&'x str, V)> for TST<V> {
+    fn from_iter<I: IntoIterator<Item = (&'x str, V)>>(iter: I) -> TST<V> {
+        let mut m = TST::new();
+        for item in iter {
+            m.insert(item.0, item.1);
+        }
+        m
+    }
+}
+
+impl<'x, V> Extend<(&'x str, V)> for TST<V> {
+    #[inline]
+    fn extend<I: IntoIterator<Item=(&'x str, V)>>(&mut self, iter: I) {
+        for (k, v) in iter {
+            self.insert(k, v);
+        }
     }
 }
 

@@ -2,6 +2,7 @@
 
 use self::tst::TST;
 use self::tst::tst::Entry::*;
+use std::iter::FromIterator;
 
 fn prepare_data() -> TST<i32> {
     tstmap! {
@@ -365,6 +366,56 @@ fn iterator_mut() {
     assert_eq!(Some(&3), m.get("a"));
     assert_eq!(Some(&12), m.get("c"));
     assert_eq!(Some(&39), m.get("aa"));
+}
+
+#[test]
+fn from_iterator_empty() {
+    let vec = vec![];
+    let m = TST::<i64>::from_iter(vec);
+
+    assert_eq!(true, m.is_empty());
+}
+
+#[test]
+fn from_iterator() {
+    let vec = vec! {
+        ("b", 2),
+        ("a", 1),
+        ("c", 4),
+        ("a", 100),
+        ("aa", 13),
+    };
+
+    let m = TST::from_iter(vec);
+    let orig = tstmap! {
+        "b" => 2,
+        "c" => 4,
+        "a" => 100,
+        "aa" => 13,
+    };
+    assert_eq!(orig, m);
+}
+
+#[test]
+fn extend() {
+    let mut m = tstmap! {
+        "a" => 13,
+    };
+    let vec = vec! {
+        ("b", 2),
+        ("a", 1),
+        ("c", 4),
+        ("a", 100),
+        ("aa", 13),
+    };
+    m.extend(vec);
+    let orig = tstmap! {
+        "a" => 100,
+        "b" => 2,
+        "c" => 4,
+        "aa" => 13,
+    };
+    assert_eq!(orig, m);
 }
 
 #[test]
