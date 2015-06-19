@@ -2,15 +2,15 @@
 
 /// - Create a `TST` containing a given list of elements:
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
-/// #[macro_use] 
+/// #[macro_use]
 /// extern crate tst;
 /// # fn main() {
 /// let m = tstmap!{
-/// 	"b" => 2, "a" => -1, "c" => 3,
-///	};
+///     "b" => 2, "a" => -1, "c" => 3,
+/// };
 ///
 /// assert_eq!(3, m.len());
 /// assert_eq!(m["a"], -1);

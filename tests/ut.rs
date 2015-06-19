@@ -369,6 +369,24 @@ fn iterator_mut() {
 }
 
 #[test]
+fn into_iter() {
+    let m = tstmap! {
+        "b" => 2,
+        "a" => 1,
+        "c" => 4,
+        "aa" => 13,
+    };
+    let vec = m.into_iter().collect::<Vec<(String, i32)>>();
+    let orig = vec! {
+        ("a".to_string(), 1),
+        ("aa".to_string(), 13),
+        ("b".to_string(), 2),
+        ("c".to_string(), 4),
+    };
+    assert_eq!(orig, vec);
+}
+
+#[test]
 fn from_iterator_empty() {
     let vec = vec![];
     let m = TST::<i64>::from_iter(vec);

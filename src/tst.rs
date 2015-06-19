@@ -43,7 +43,7 @@ use std::iter::{Map, FromIterator};
 
 // by design TST depends on order of inserts in it, not only on keys and data itself
 
-
+/// Root struct for TST, which holds root and size
 #[derive(Clone, PartialEq, Eq)]
 pub struct TST<V> {
     root: Option<Box<Node<V>>>,
@@ -51,12 +51,50 @@ pub struct TST<V> {
 }
 
 impl<V> TST<V> {
+    /// Constructs a new, empty `TST<V>`.
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    /// let mut t: TST<i64> = TST::new();
+    /// ```
+    #[inline]
     pub fn new() -> TST<V> {
         TST { root: None, size: 0 }
     }
+
+    /// Returns the number of elements in the container.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// assert_eq!(0, m.len());
+    /// m.insert("ab", 2);
+    /// m.insert("x", 1);
+    /// assert_eq!(2, m.len());
+    /// ```
     #[inline]
     pub fn len(&self) -> usize { self.size }
-    // key must be non-empty string!
+
+    /// Inserts an element at key `key` with value `val`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `key` is empty or more then 2000 symbols(because of reccursion).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("SOmeWOrd", 2);
+    /// m.insert("SOmeOtherWOrd", 4);
+    /// assert_eq!(2, m.len());
+    /// ```
     pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
         assert!(key.len() > 0, "Empty key");
         assert!(key.len() < 2000, "Key is too long");
@@ -113,16 +151,60 @@ impl<V> TST<V> {
             }
         }
     }
+
+    /// Returns true if the TST contains a value for the specified key.
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// assert!(!m.contains_key("ab"));
+    /// assert!(m.contains_key("abc"))
+    /// ```
+     #[inline]
     pub fn contains_key(&self, key: &str) -> bool {
         self.get(key).is_some()
     }
+
+    /// Returns true if the TST contains no elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// assert!(m.is_empty());
+    ///
+    /// m.insert("abc", 1);
+    /// assert!(!m.is_empty());
+    /// ```
+    #[inline]
     pub fn is_empty(&self) -> bool { self.size == 0 }
+
+    /// Clears the TST.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// m.insert("abd", 100);
+    /// m.clear();
+    ///
+    /// assert!(m.is_empty());
+    /// assert_eq!(None, m.get("abc"));
+    /// ```
     pub fn clear(&mut self) { *self = TST::<V>::new(); }
 
     /// An iterator returning all nodes matching wildcard pattern.
     /// Iterator element type is (String, V)
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// use tst::tst::TST;
@@ -139,9 +221,10 @@ impl<V> TST<V> {
     pub fn wildcard_iter(&self, pat: &str) -> WildCardIter<V> {
         WildCardIter::<V>::new(&self.root, pat, self.len())
     }
+
     /// Method returns longest prefix in TST
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
     /// use tst::tst::TST;
@@ -208,7 +291,56 @@ impl<V> TST<V> {
         let len = self.len();
         IterMut::<V>::new(&mut self.root, len, len)
     }
-/*
+
+    /// An iterator visiting all keys in arbitrary order.
+    /// Iterator element type is String
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for key in m.keys() {
+    ///     println!("{}", key);
+    /// }
+    /// ```
+    pub fn keys(&self) -> KeysIter<V> {
+        fn first<A, B>((k, _): (A, B)) -> A { k }
+        KeysIter { iter: self.iter().map(first) }
+    }
+
+    /// An iterator visiting all values in arbitrary order.
+    /// Iterator element type is &V
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for value in m.values() {
+    ///     println!("{}", value);
+    /// }
+    /// ```
+    pub fn values(&self) -> ValuesIter<V> {
+        fn second<A, B>((_, v): (A, B)) -> B { v }
+        ValuesIter { iter: self.iter().map(second) }
+    }
+}
+
+impl<V> IntoIterator for TST<V> {
+    type Item = (String, V);
+    type IntoIter = IntoIter<V>;
+
     /// Creates a consuming iterator, that is, one that moves each key-value
     /// pair out of the TST in arbitrary order. The TST cannot be used after
     /// calling this.
@@ -225,53 +357,8 @@ impl<V> TST<V> {
     ///
     /// let vec: Vec<(String, isize)> = m.into_iter().collect();
     /// ```
-    pub fn into_iter(self) -> IntoIter<V> {
-        IntoIter {
-            inner: self.table.into_iter().map(last_two)
-        }
-    }
-*/
-    /// An iterator visiting all keys in arbitrary order.
-    /// Iterator element type is String
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use tst::tst::TST;
-    ///
-    /// let mut m = TST::new();
-    /// m.insert("a", 1);
-    /// m.insert("b", 2);
-    /// m.insert("c", 3);
-    ///
-    /// for key in m.keys() {
-    ///     println!("{}", key);
-    /// }
-    /// ```
-    pub fn keys(&self) -> Keys<V> {
-        fn first<A, B>((k, _): (A, B)) -> A { k }
-        Keys { iter: self.iter().map(first) }
-    }
-    /// An iterator visiting all keys in arbitrary order.
-    /// Iterator element type is String
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use tst::tst::TST;
-    ///
-    /// let mut m = TST::new();
-    /// m.insert("a", 1);
-    /// m.insert("b", 2);
-    /// m.insert("c", 3);
-    ///
-    /// for key in m.keys() {
-    ///     println!("{}", key);
-    /// }
-    /// ```
-    pub fn values(&self) -> Values<V> {
-        fn second<A, B>((_, v): (A, B)) -> B { v }
-        Values { iter: self.iter().map(second) }
+    fn into_iter(self) -> IntoIter<V> {
+        IntoIter::new(self)
     }
 }
 
@@ -427,6 +514,10 @@ impl<V: Debug> Debug for Node<V> {
     }
 }
 
+//
+// iterators section
+//
+
 /// TST iterator.
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
@@ -475,6 +566,7 @@ impl<'a, V> Default for Iter<'a, V> {
 
 impl<'a, V> Iterator for Iter<'a, V> {
     type Item = (String, &'a V);
+
     fn next(&mut self) -> Option<(String, &'a V)> {
         while !self.stack.is_empty() {
             let node = self.stack.pop().unwrap();
@@ -519,8 +611,7 @@ impl<'a, V> Iterator for Iter<'a, V> {
     }
 }
 
-
-/// TST mutable values iterator.
+/// TST mutable iterator.
 pub struct IterMut<'a, V: 'a> {
     iter: Iter<'a, V>,
 }
@@ -559,11 +650,11 @@ impl<'a, V> Iterator for IterMut<'a, V> {
 
 /// TST keys iterator
 #[derive(Clone)]
-pub struct Keys<'a, V: 'a> {
+pub struct KeysIter<'a, V: 'a> {
     iter: Map<Iter<'a, V>, fn((String, &'a V)) -> String>,
 }
 
-impl<'a, V:'a> Iterator for Keys<'a, V> {
+impl<'a, V:'a> Iterator for KeysIter<'a, V> {
     type Item = String;
     fn next(&mut self) -> Option<String> { self.iter.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
@@ -571,11 +662,11 @@ impl<'a, V:'a> Iterator for Keys<'a, V> {
 
 
 /// TST values iterator
-pub struct Values<'a, V:'a> {
+pub struct ValuesIter<'a, V:'a> {
     iter: Map<Iter<'a, V>, fn((String, &'a V)) -> &'a V>,
 }
 
-impl<'a, V:'a> Iterator for Values<'a, V> {
+impl<'a, V:'a> Iterator for ValuesIter<'a, V> {
     type Item = &'a V;
     fn next(&mut self) -> Option<&'a V> { self.iter.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
@@ -650,6 +741,67 @@ impl<'a, V> Iterator for WildCardIter<'a, V> {
     }
 }
 
+/// TST consuming iterator
+pub struct IntoIter<V> {
+    stack: Vec<(Option<Box<Node<V>>>, String, Option<V>)>,
+    size: usize,
+}
+
+impl<V> IntoIter<V> {
+    fn new(tst: TST<V>) -> IntoIter<V> {
+        let size = tst.len();
+        IntoIter {
+            stack: vec![(tst.root, "".to_string(), None)],
+            size: size,
+        }
+    }
+}
+
+impl<V> Iterator for IntoIter<V> {
+    type Item = (String, V);
+
+    fn next(&mut self) -> Option<(String, V)> {
+        while !self.stack.is_empty() {
+            let mut node = self.stack.pop().unwrap();
+            match node.2 {
+                Some(value) => {
+                    self.size -= 1;
+                    return Some((node.1, value));
+                }
+                None => {
+                    match node.0 {
+                        None => {}
+                        Some(ref mut cur) => {
+                            let mut prefix = String::new();
+                            if cur.gt.is_some() {
+                                self.stack.push((mem::replace(&mut cur.gt, None), node.1.clone(), None));
+                            }
+                            if cur.eq.is_some() || cur.val.is_some() {
+                                prefix.push_str(&node.1);
+                                prefix.push(cur.c);
+                            }
+                            if cur.eq.is_some() {
+                                self.stack.push((mem::replace(&mut cur.eq, None), prefix.clone(), None));
+                            }
+                            if cur.val.is_some() {
+                                self.stack.push((None, prefix, mem::replace(&mut cur.val, None)));
+                            }
+                            if cur.lt.is_some() {
+                                self.stack.push((mem::replace(&mut cur.lt, None), node.1.clone(), None));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+fn size_hint(&self) -> (usize, Option<usize>) { (self.size, Some(self.size)) }
+}
+
+impl<V> ExactSizeIterator for IntoIter<V> {
+    fn len(&self) -> usize { self.size }
+}
 
 /// A view into a single occupied location in a TST.
 pub struct OccupiedEntry<'a, V: 'a> {

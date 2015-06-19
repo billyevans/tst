@@ -13,7 +13,6 @@ It has special methods:
 - longest_prefix - get longest prefix
 
 TODO:
-- into_iter
 - split into map and set
 - make non-reccursive
 - remove key.chars().collect()
