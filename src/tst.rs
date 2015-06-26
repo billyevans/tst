@@ -43,7 +43,7 @@ use std::iter::{Map, FromIterator};
 
 // by design TST depends on order of inserts in it, not only on keys and data itself
 
-/// Root struct for TST, which holds root and size
+/// Root struct for TST, which holds root and size.
 #[derive(Clone, PartialEq, Eq)]
 pub struct TST<V> {
     root: Option<Box<Node<V>>>,
