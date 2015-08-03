@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["tstmap!","Create a `TST` containing a given list of elements:\n"]],"mod":[["tst",""]]});
