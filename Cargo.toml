@@ -10,4 +10,4 @@ description = "Ternary search tree collection in rust with similar API to std::c
 keywords = ["data-structures"]
 repository = "https://github.com/billyevans/tst"
 homepage = "https://github.com/billyevans/tst"
-
+documentation = "http://billyevans.github.io/tst/tst"

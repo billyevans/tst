@@ -7,6 +7,8 @@
 Ternary search tree collection in rust with similar API to std::collections as it possible.
 Now it's first simplest implementation, that's the reason why it's reccursive.
 
+Documentation is available at http://billyevans.github.io/tst/tst
+
 It has special methods:
 - wildcard_iter - get iterator by wildcard
 - prefix_iter/prefix_iter_mut - get iterator by prefix
