@@ -1,10 +1,11 @@
 language: rust
 rust: 1.1.0
 script:
-  - cargo test
-after_success: |
-  sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
-  wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
-  tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make &&
-  sudo make install && cd ../.. &&
-  kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
+    - cargo test
+after_success:
+    - sudo apt-get install libcurl4-openssl-dev libelf-dev libdw-dev &&
+    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
+    tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make &&
+    sudo make install && cd ../.. &&
+    kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
+    - [ $TRAVIS_BRANCH = master ] && [ $TRAVIS_PULL_REQUEST = false ] && bash deploy-docs.sh
