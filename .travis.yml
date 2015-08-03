@@ -1,8 +1,21 @@
 sudo: false
 language: rust
 rust: 1.1.0
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+
+branches:
+  except:
+    - gh-pages
+
 script:
-    - cargo test
+  - cargo test
+  - cargo doc
+
 after_success:
-    - bash install-kcov.sh && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
-    - [ $TRAVIS_BRANCH = master ] && [ $TRAVIS_PULL_REQUEST = false ] && bash deploy-docs.sh
+  - bash install-kcov.sh && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
+  - [ $TRAVIS_BRANCH = master ] && [ $TRAVIS_PULL_REQUEST = false ] && bash deploy-docs.sh
