@@ -18,4 +18,4 @@ script:
 
 after_success:
   - bash install-kcov.sh && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
-  - [ $TRAVIS_BRANCH = master ] && [ $TRAVIS_PULL_REQUEST = false ] && bash deploy-docs.sh
+  - bash deploy-docs.sh
