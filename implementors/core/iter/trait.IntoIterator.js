@@ -1,5 +1,5 @@
 (function() {var implementors = {};
-implementors['tst'] = ["<a class='stability Stable' title='Stable'></a>impl&lt;V&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='tst/tst/struct.TST.html' title='tst::tst::TST'>TST</a>&lt;V&gt;",];
+implementors['tst'] = ["impl&lt;V&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='tst/tst/struct.TST.html' title='tst::tst::TST'>TST</a>&lt;V&gt;",];
 
             if (window.register_implementors) {
                 window.register_implementors(implementors);
