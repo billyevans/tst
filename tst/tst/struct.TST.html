@@ -121,10 +121,61 @@ Also it provides extra features, like getting all keys, values with common prefi
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>2</span>, <span class='ident'>m</span>.<span class='ident'>len</span>());
 </pre>
 </div><h4 id='method.entry' class='method'><code>fn <a href='#method.entry' class='fnname'>entry</a>(&amp;mut self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='../../tst/tst/enum.Entry.html' title='tst::tst::Entry'>Entry</a>&lt;V&gt;</code></h4>
-<h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(&amp;mut self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;V&gt;</code></h4>
-<h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;V&gt;</code></h4>
-<h4 id='method.get_mut' class='method'><code>fn <a href='#method.get_mut' class='fnname'>get_mut</a>(&amp;mut self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;mut V&gt;</code></h4>
-<h4 id='method.contains_key' class='method'><code>fn <a href='#method.contains_key' class='fnname'>contains_key</a>(&amp;self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Gets the given key&#39;s corresponding entry in the TST for in-place manipulation.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>count</span>: <span class='ident'>TST</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+
+<span class='kw'>for</span> <span class='ident'>x</span> <span class='kw'>in</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='string'>&quot;abc&quot;</span>,<span class='string'>&quot;bad&quot;</span>,<span class='string'>&quot;abd&quot;</span>,<span class='string'>&quot;cdddd&quot;</span>,<span class='string'>&quot;abc&quot;</span>,<span class='string'>&quot;bade&quot;</span>] {
+    <span class='op'>*</span><span class='ident'>count</span>.<span class='ident'>entry</span>(<span class='ident'>x</span>).<span class='ident'>or_insert</span>(<span class='number'>0</span>) <span class='op'>+=</span> <span class='number'>1</span>;
+}
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>2</span>, <span class='ident'>count</span>[<span class='string'>&quot;abc&quot;</span>]);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>1</span>, <span class='ident'>count</span>[<span class='string'>&quot;abd&quot;</span>]);
+</pre>
+</div><h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(&amp;mut self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;V&gt;</code></h4>
+<div class='docblock'><p>Removes a key from the TST, returning the value at the key if the key
+was previously in the TST.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>100</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>Some</span>(<span class='number'>100</span>), <span class='ident'>m</span>.<span class='ident'>remove</span>(<span class='string'>&quot;abc&quot;</span>));
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>None</span>, <span class='ident'>m</span>.<span class='ident'>remove</span>(<span class='string'>&quot;abc&quot;</span>));
+</pre>
+</div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;V&gt;</code></h4>
+<div class='docblock'><p>Returns a reference to the value corresponding to the key or None.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;first&quot;</span>, <span class='number'>13</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='number'>13</span>), <span class='ident'>m</span>.<span class='ident'>get</span>(<span class='string'>&quot;first&quot;</span>));
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>None</span>, <span class='ident'>m</span>.<span class='ident'>get</span>(<span class='string'>&quot;second&quot;</span>));
+</pre>
+</div><h4 id='method.get_mut' class='method'><code>fn <a href='#method.get_mut' class='fnname'>get_mut</a>(&amp;mut self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;mut V&gt;</code></h4>
+<div class='docblock'><p>Returns a mutable reference to the value corresponding to the key.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;first&quot;</span>, <span class='number'>13</span>);
+<span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>(<span class='ident'>x</span>) <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>get_mut</span>(<span class='string'>&quot;first&quot;</span>) {
+    <span class='op'>*</span><span class='ident'>x</span> <span class='op'>=</span> <span class='op'>-</span><span class='number'>13</span>;
+}
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='op'>-</span><span class='number'>13</span>, <span class='ident'>m</span>[<span class='string'>&quot;first&quot;</span>]);
+</pre>
+</div><h4 id='method.contains_key' class='method'><code>fn <a href='#method.contains_key' class='fnname'>contains_key</a>(&amp;self, key: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <div class='docblock'><p>Returns true if the TST contains a value for the specified key.</p>
 
 <h1 id="examples" class='section-header'><a
@@ -182,7 +233,7 @@ Iterator element type is (String, V)</p>
 }
 </pre>
 </div><h4 id='method.longest_prefix' class='method'><code>fn <a href='#method.longest_prefix' class='fnname'>longest_prefix</a>&lt;'a&gt;(&amp;self, pref: &amp;'a <a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; &amp;'a <a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
-<div class='docblock'><p>Method returns longest prefix in TST</p>
+<div class='docblock'><p>Method returns longest prefix in the TST</p>
 
 <h1 id="examples" class='section-header'><a
                            href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
@@ -199,11 +250,88 @@ Iterator element type is (String, V)</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='ident'>m</span>.<span class='ident'>longest_prefix</span>(<span class='string'>&quot;abcde&quot;</span>));
 </pre>
 </div><h4 id='method.prefix_iter' class='method'><code>fn <a href='#method.prefix_iter' class='fnname'>prefix_iter</a>(&amp;self, pref: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../../tst/tst/struct.Iter.html' title='tst::tst::Iter'>Iter</a>&lt;V&gt;</code></h4>
-<div class='docblock'><p>get iterator over all values with common prefix</p>
+<div class='docblock'><p>Method returns iterator over all values with common prefix in the TST</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>, <span class='number'>1</span>);
+
+<span class='kw'>for</span> (<span class='ident'>key</span>, <span class='ident'>value</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>prefix_iter</span>(<span class='string'>&quot;abc&quot;</span>) {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}: {}&quot;</span>, <span class='ident'>key</span>, <span class='ident'>value</span>);
+}
+
+<span class='kw'>let</span> (<span class='ident'>first_key</span>, <span class='ident'>first_value</span>) <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>iter</span>().<span class='ident'>next</span>().<span class='ident'>unwrap</span>();
+<span class='macro'>assert_eq</span><span class='macro'>!</span>((<span class='ident'>first_key</span>, <span class='op'>*</span><span class='ident'>first_value</span>), (<span class='string'>&quot;abc&quot;</span>.<span class='ident'>to_string</span>(), <span class='number'>1</span>));
+</pre>
 </div><h4 id='method.prefix_iter_mut' class='method'><code>fn <a href='#method.prefix_iter_mut' class='fnname'>prefix_iter_mut</a>(&amp;mut self, pref: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../../tst/tst/struct.IterMut.html' title='tst::tst::IterMut'>IterMut</a>&lt;V&gt;</code></h4>
-<h4 id='method.iter' class='method'><code>fn <a href='#method.iter' class='fnname'>iter</a>(&amp;self) -&gt; <a class='struct' href='../../tst/tst/struct.Iter.html' title='tst::tst::Iter'>Iter</a>&lt;V&gt;</code></h4>
-<h4 id='method.iter_mut' class='method'><code>fn <a href='#method.iter_mut' class='fnname'>iter_mut</a>(&amp;mut self) -&gt; <a class='struct' href='../../tst/tst/struct.IterMut.html' title='tst::tst::IterMut'>IterMut</a>&lt;V&gt;</code></h4>
-<h4 id='method.keys' class='method'><code>fn <a href='#method.keys' class='fnname'>keys</a>(&amp;self) -&gt; <a class='struct' href='../../tst/tst/struct.KeysIter.html' title='tst::tst::KeysIter'>KeysIter</a>&lt;V&gt;</code></h4>
+<div class='docblock'><p>Method returns mutable iterator over all values with common prefix in the TST</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>, <span class='number'>1</span>);
+
+<span class='kw'>for</span> (<span class='ident'>key</span>, <span class='ident'>value</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>prefix_iter_mut</span>(<span class='string'>&quot;abc&quot;</span>) {
+    <span class='op'>*</span><span class='ident'>value</span> <span class='op'>+=</span> <span class='number'>100</span>;
+}
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>101</span>, <span class='ident'>m</span>[<span class='string'>&quot;abc&quot;</span>]);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>101</span>, <span class='ident'>m</span>[<span class='string'>&quot;abcdef&quot;</span>]);
+</pre>
+</div><h4 id='method.iter' class='method'><code>fn <a href='#method.iter' class='fnname'>iter</a>(&amp;self) -&gt; <a class='struct' href='../../tst/tst/struct.Iter.html' title='tst::tst::Iter'>Iter</a>&lt;V&gt;</code></h4>
+<div class='docblock'><p>Gets an iterator over the entries of the TST.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;bbc&quot;</span>, <span class='number'>2</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;cccda&quot;</span>, <span class='number'>3</span>);
+
+<span class='kw'>for</span> (<span class='ident'>key</span>, <span class='ident'>value</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>iter</span>() {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}: {}&quot;</span>, <span class='ident'>key</span>, <span class='ident'>value</span>);
+}
+
+<span class='kw'>let</span> (<span class='ident'>first_key</span>, <span class='ident'>first_value</span>) <span class='op'>=</span> <span class='ident'>m</span>.<span class='ident'>iter</span>().<span class='ident'>next</span>().<span class='ident'>unwrap</span>();
+<span class='macro'>assert_eq</span><span class='macro'>!</span>((<span class='ident'>first_key</span>, <span class='op'>*</span><span class='ident'>first_value</span>), (<span class='string'>&quot;abc&quot;</span>.<span class='ident'>to_string</span>(), <span class='number'>1</span>));
+</pre>
+</div><h4 id='method.iter_mut' class='method'><code>fn <a href='#method.iter_mut' class='fnname'>iter_mut</a>(&amp;mut self) -&gt; <a class='struct' href='../../tst/tst/struct.IterMut.html' title='tst::tst::IterMut'>IterMut</a>&lt;V&gt;</code></h4>
+<div class='docblock'><p>Gets a mutable iterator over the entries of the TST.</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>tst</span>::<span class='ident'>TST</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TST</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;a&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;b&quot;</span>, <span class='number'>2</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;c&quot;</span>, <span class='number'>3</span>);
+
+<span class='kw'>for</span> (<span class='ident'>key</span>, <span class='ident'>value</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>iter_mut</span>() {
+    <span class='kw'>if</span> <span class='ident'>key</span> <span class='op'>!=</span> <span class='string'>&quot;a&quot;</span> {
+        <span class='op'>*</span><span class='ident'>value</span> <span class='op'>+=</span> <span class='number'>10</span>;
+    }
+}
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>1</span>, <span class='ident'>m</span>[<span class='string'>&quot;a&quot;</span>]);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>12</span>, <span class='ident'>m</span>[<span class='string'>&quot;b&quot;</span>]);
+</pre>
+</div><h4 id='method.keys' class='method'><code>fn <a href='#method.keys' class='fnname'>keys</a>(&amp;self) -&gt; <a class='struct' href='../../tst/tst/struct.KeysIter.html' title='tst::tst::KeysIter'>KeysIter</a>&lt;V&gt;</code></h4>
 <div class='docblock'><p>An iterator visiting all keys in arbitrary order.
 Iterator element type is String</p>
 
