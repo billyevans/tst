@@ -104,12 +104,43 @@ impl<V> TST<V> {
         if ret.is_none() { self.size += 1 }
         ret
     }
+
+    /// Gets the given key's corresponding entry in the TST for in-place manipulation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut count: TST<usize> = TST::new();
+    ///
+    /// for x in vec!["abc","bad","abd","cdddd","abc","bade"] {
+    ///     *count.entry(x).or_insert(0) += 1;
+    /// }
+    ///
+    /// assert_eq!(2, count["abc"]);
+    /// assert_eq!(1, count["abd"]);
+    /// ```
     pub fn entry(&mut self, key: &str) -> Entry<V> {
         assert!(key.len() > 0, "Empty key");
         let l = &mut self.size;
         let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
         Entry::<V>::new(cur, l)
     }
+
+    /// Removes a key from the TST, returning the value at the key if the key
+    /// was previously in the TST.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("abc", 100);
+    /// assert_eq!(Some(100), m.remove("abc"));
+    /// assert_eq!(None, m.remove("abc"));
+    /// ```
     pub fn remove(&mut self, key: &str) -> Option<V> {
         let ret = Node::remove(&mut self.root, key.chars().collect(), 0);
         if ret.is_some() {
@@ -117,6 +148,19 @@ impl<V> TST<V> {
         }
         ret
     }
+
+    /// Returns a reference to the value corresponding to the key or None.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("first", 13);
+    /// assert_eq!(Some(&13), m.get("first"));
+    /// assert_eq!(None, m.get("second"));
+    /// ```
     pub fn get(&self, key: &str) -> Option<&V> {
         let node = Node::get(&self.root, key.chars().collect(), 0);
         match node {
@@ -134,6 +178,21 @@ impl<V> TST<V> {
             }
         }
     }
+
+    /// Returns a mutable reference to the value corresponding to the key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("first", 13);
+    /// if let Some(x) = m.get_mut("first") {
+    ///     *x = -13;
+    /// }
+    /// assert_eq!(-13, m["first"]);
+    /// ```
     pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
         let node = Node::get_mut(&mut self.root, key.chars().collect(), 0);
         match node {
@@ -222,7 +281,7 @@ impl<V> TST<V> {
         WildCardIter::<V>::new(&self.root, pat, self.len())
     }
 
-    /// Method returns longest prefix in TST
+    /// Method returns longest prefix in the TST
     ///
     /// # Examples
     ///
@@ -265,7 +324,28 @@ impl<V> TST<V> {
         }
         return &pref[..length];
     }
-    /// get iterator over all values with common prefix
+
+    /// Method returns iterator over all values with common prefix in the TST
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// m.insert("abcd", 1);
+    /// m.insert("abce", 1);
+    /// m.insert("abca", 1);
+    /// m.insert("zxd", 1);
+    /// m.insert("add", 1);
+    /// m.insert("abcdef", 1);
+    ///
+    /// for (key, value) in m.prefix_iter("abc") {
+    ///     println!("{}: {}", key, value);
+    /// }
+    ///
+    /// let (first_key, first_value) = m.iter().next().unwrap();
+    /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
+    /// ```
     pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
         let node = Node::get(&self.root, pref.chars().collect(), 0);
 
@@ -274,6 +354,27 @@ impl<V> TST<V> {
             Some(ptr) => Iter::<V>::new_with_prefix(ptr, pref, self.len())
         }
     }
+
+    /// Method returns mutable iterator over all values with common prefix in the TST
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// m.insert("abcd", 1);
+    /// m.insert("abce", 1);
+    /// m.insert("abca", 1);
+    /// m.insert("zxd", 1);
+    /// m.insert("add", 1);
+    /// m.insert("abcdef", 1);
+    ///
+    /// for (key, value) in m.prefix_iter_mut("abc") {
+    ///     *value += 100;
+    /// }
+    /// assert_eq!(101, m["abc"]);
+    /// assert_eq!(101, m["abcdef"]);
+    /// ```
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
         let len = self.len();
         let node = Node::get_mut(&mut self.root, pref.chars().collect(), 0);
@@ -282,11 +383,51 @@ impl<V> TST<V> {
             Some(ptr) => IterMut::<V>::new_with_prefix(ptr, pref, len),
         }
     }
+
+    /// Gets an iterator over the entries of the TST.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("abc", 1);
+    /// m.insert("bbc", 2);
+    /// m.insert("cccda", 3);
+    ///
+    /// for (key, value) in m.iter() {
+    ///     println!("{}: {}", key, value);
+    /// }
+    ///
+    /// let (first_key, first_value) = m.iter().next().unwrap();
+    /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
+    /// ```
     pub fn iter(&self) -> Iter<V> {
         let len = self.len();
         Iter::<V>::new(&self.root, len, len)
     }
 
+    /// Gets a mutable iterator over the entries of the TST.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::tst::TST;
+    ///
+    /// let mut m = TST::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for (key, value) in m.iter_mut() {
+    ///     if key != "a" {
+    ///         *value += 10;
+    ///     }
+    /// }
+    /// assert_eq!(1, m["a"]);
+    /// assert_eq!(12, m["b"]);
+    /// ```
     pub fn iter_mut(&mut self) -> IterMut<V> {
         let len = self.len();
         IterMut::<V>::new(&mut self.root, len, len)
