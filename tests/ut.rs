@@ -210,6 +210,7 @@ fn clear() {
 #[test]
 fn remove_from_empty() {
     let mut m = TST::<u32>::new();
+
     assert_eq!(None, m.remove("xxx"));
     assert_eq!(None, m.remove(""));
 }

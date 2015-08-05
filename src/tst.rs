@@ -145,6 +145,9 @@ impl<V> TST<V> {
         let ret = Node::remove(&mut self.root, key.chars().collect(), 0);
         if ret.is_some() {
             self.size -= 1;
+            if self.root.as_ref().unwrap().is_leaf() {
+                mem::replace(&mut self.root, None);
+            }
         }
         ret
     }
@@ -566,6 +569,7 @@ impl<V> Node<V> {
             c: c
         }
     }
+
     fn insert_node(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> &mut Box<Node<V>> {
         let k = key[i];
         match *node {
@@ -589,6 +593,7 @@ impl<V> Node<V> {
             }
         }
     }
+
     fn get(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
             Option<&Option<Box<Node<V>>>>
     {
@@ -619,7 +624,10 @@ impl<V> Node<V> {
         unsafe { mem::transmute(Node::get(node, key, i)) }
     }
 
-    // TODO: add shrink all tails
+    fn is_leaf(&self) -> bool {
+        self.lt.is_none() && self.gt.is_none() && self.eq.is_none() && self.val.is_none()
+    }
+
     fn remove(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<V> {
         if i >= key.len() { return None; }
         match *node {
@@ -627,13 +635,25 @@ impl<V> Node<V> {
             Some(ref mut cur) => {
                 let k = key[i];
                 if k < cur.c {
-                    Node::remove(&mut cur.lt, key, i)
+                    let ret = Node::remove(&mut cur.lt, key, i);
+                    if ret.is_some() && cur.lt.as_ref().unwrap().is_leaf() {
+                        mem::replace(&mut cur.lt, None);
+                    }
+                    ret
                 }
                 else if k > cur.c {
-                    Node::remove(&mut cur.gt, key, i)
+                    let ret = Node::remove(&mut cur.gt, key, i);
+                    if ret.is_some() && cur.gt.as_ref().unwrap().is_leaf() {
+                        mem::replace(&mut cur.gt, None);
+                    }
+                    ret
                 }
                 else if i + 1 < key.len() {
-                    Node::remove(&mut cur.eq, key, i+1)
+                    let ret = Node::remove(&mut cur.eq, key, i+1);
+                    if ret.is_some() && cur.eq.as_ref().unwrap().is_leaf() {
+                        mem::replace(&mut cur.eq, None);
+                    }
+                    ret
                 }
                 else {
                     match cur.val {
