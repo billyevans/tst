@@ -1051,3 +1051,20 @@ impl<'a, V> VacantEntry<'a, V> {
         self.node.val.as_mut().unwrap()
     }
 }
+
+// internal tests
+#[cfg(test)]
+mod test {
+    #[test]
+    fn remove_drops_tails() {
+        let mut m = tstmap! {
+            "BY" => 1,
+            "BYGONE" => 3,
+            "BYE" => 2,
+        };
+        m.remove("BY");
+        m.remove("BYE");
+        m.remove("BYGONE");
+        assert_eq!(None, m.root);
+    }
+}
