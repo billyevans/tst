@@ -1,4 +1,6 @@
+#![deny(missing_docs)]
 
+//! Ternary search trie (TST) container.
 
 /// - Create a `TST` containing a given list of elements:
 ///
@@ -35,6 +37,8 @@ macro_rules! tstmap {
 }
 
 pub use tst::TST;
+
+/// TST container map implementation.
 pub mod tst;
 // FIXME: uncomment, when test became stable
 // mod bench;

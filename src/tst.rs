@@ -977,7 +977,9 @@ pub struct VacantEntry<'a, V: 'a> {
 
 /// A view into a single location in a TST, which may be vacant or occupied.
 pub enum Entry<'a, V: 'a> {
+    /// A vacant Entry
     Occupied(OccupiedEntry<'a, V>),
+    /// An occupied Entry
     Vacant(VacantEntry<'a, V>),
 }
 
@@ -988,6 +990,7 @@ impl<'a, V> Entry<'a, V> {
             Some(_) => Occupied(OccupiedEntry::new(node, size)),
         }
     }
+    /// Gets a mut reference to the value in the entry or Err in case for Vacant.
     pub fn get(self) -> Result<&'a mut V, VacantEntry<'a, V>> {
         match self {
             Occupied(entry) => Ok(entry.into_mut()),
