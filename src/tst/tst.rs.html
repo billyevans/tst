@@ -1110,6 +1110,9 @@
 <span id="1068">1068</span>
 <span id="1069">1069</span>
 <span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
 </pre><pre class='rust '>
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
@@ -2090,7 +2093,9 @@
 
 <span class='doccomment'>/// A view into a single location in a TST, which may be vacant or occupied.</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>Entry</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>V</span>: <span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
+    <span class='doccomment'>/// A vacant Entry</span>
     <span class='ident'>Occupied</span>(<span class='ident'>OccupiedEntry</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>V</span><span class='op'>&gt;</span>),
+    <span class='doccomment'>/// An occupied Entry</span>
     <span class='ident'>Vacant</span>(<span class='ident'>VacantEntry</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>V</span><span class='op'>&gt;</span>),
 }
 
@@ -2101,6 +2106,7 @@
             <span class='prelude-val'>Some</span>(_) <span class='op'>=&gt;</span> <span class='ident'>Occupied</span>(<span class='ident'>OccupiedEntry</span>::<span class='ident'>new</span>(<span class='ident'>node</span>, <span class='ident'>size</span>)),
         }
     }
+    <span class='doccomment'>/// Gets a mut reference to the value in the entry or Err in case for Vacant.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>V</span>, <span class='ident'>VacantEntry</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>V</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>match</span> <span class='self'>self</span> {
             <span class='ident'>Occupied</span>(<span class='ident'>entry</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='ident'>entry</span>.<span class='ident'>into_mut</span>()),
