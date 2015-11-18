@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst</a></p><script>window.sidebarCurrent = {name: 'Entry', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -53,12 +53,12 @@
 </div><h2 class='variants'>Variants</h2>
 <table><tr><td id='variant.Occupied'><code>Occupied</code></td><td><div class='docblock'><p>A vacant Entry</p>
 </div></td></tr><tr><td id='variant.Vacant'><code>Vacant</code></td><td><div class='docblock'><p>An occupied Entry</p>
-</div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='enum' href='../../tst/tst/enum.Entry.html' title='tst::tst::Entry'>Entry</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(self) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;&amp;'a mut V, <a class='struct' href='../../tst/tst/struct.VacantEntry.html' title='tst::tst::VacantEntry'>VacantEntry</a>&lt;'a, V&gt;&gt;</code></h4>
+</div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='enum' href='../../tst/tst/enum.Entry.html' title='tst::tst::Entry'>Entry</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;&amp;'a mut V, <a class='struct' href='../../tst/tst/struct.VacantEntry.html' title='tst::tst::VacantEntry'>VacantEntry</a>&lt;'a, V&gt;&gt;</code></h4>
 <div class='docblock'><p>Gets a mut reference to the value in the entry or Err in case for Vacant.</p>
 </div><h4 id='method.or_insert' class='method'><code>fn <a href='#method.or_insert' class='fnname'>or_insert</a>(self, default: V) -&gt; &amp;'a mut V</code></h4>
 <div class='docblock'><p>Ensures a value is in the entry by inserting the default if empty, and returns
 a mutable reference to the value in the entry.</p>
-</div><h4 id='method.or_insert_with' class='method'><code>fn <a href='#method.or_insert_with' class='fnname'>or_insert_with</a>&lt;F: <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; V&gt;(self, default: F) -&gt; &amp;'a mut V</code></h4>
+</div><h4 id='method.or_insert_with' class='method'><code>fn <a href='#method.or_insert_with' class='fnname'>or_insert_with</a>&lt;F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnOnce.html' title='core::ops::FnOnce'>FnOnce</a>() -&gt; V&gt;(self, default: F) -&gt; &amp;'a mut V</code></h4>
 <div class='docblock'><p>Ensures a value is in the entry by inserting the result of the default function if empty,
 and returns a mutable reference to the value in the entry.</p>
 </div></div></section>
@@ -66,10 +66,12 @@ and returns a mutable reference to the value in the entry.</p>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -86,7 +88,7 @@ and returns a mutable reference to the value in the entry.</p>
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -96,8 +98,8 @@ and returns a mutable reference to the value in the entry.</p>
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>
@@ -106,7 +108,7 @@ and returns a mutable reference to the value in the entry.</p>
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 
