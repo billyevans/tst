@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/billyevans/tst/badge.svg?branch=master)](https://coveralls.io/r/billyevans/tst?branch=master)
 [![crates.io](http://meritbadge.herokuapp.com/tst)](https://crates.io/crates/tst)
 
-Ternary search tree collection in rust with similar API to std::collections as it possible.
+Ternary search trie collection in rust with similar API to std::collections as it possible.
 Now it's first simplest implementation, that's the reason why it's reccursive.
 
 Documentation is available at http://billyevans.github.io/tst/tst
