@@ -1,5 +1,3 @@
-#![deny(missing_docs)]
-
 //! Ternary search trie (TST) container.
 
 /// - Create a `TST` containing a given list of elements:

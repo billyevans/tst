@@ -330,7 +330,7 @@ fn format() {
 
     let m_str = format!("{:?}", m);
     assert_eq!(
-        "{\"abc\": 2,\"abcdefghjkik\": -169874,\"abd\": 1,\"abdd\": 4,}", 
+        "{\"abc\": 2,\"abcdefghjkik\": -169874,\"abd\": 1,\"abdd\": 4,}",
         m_str
     );
 }
@@ -695,4 +695,3 @@ fn  overflow_stack() {
     m.insert(&key, 1);
     assert_eq!(1, m.len());
 }
-

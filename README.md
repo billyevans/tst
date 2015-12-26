@@ -5,7 +5,7 @@
 [![crates.io](http://meritbadge.herokuapp.com/tst)](https://crates.io/crates/tst)
 
 Ternary search trie collection in rust with similar API to std::collections as it possible.
-Now it's first simplest implementation, that's the reason why it's reccursive.
+Now it's first simplest implementation, that's the reason why it's recursive.
 
 Documentation is available at http://billyevans.github.io/tst/tst
 

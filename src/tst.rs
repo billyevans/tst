@@ -5,6 +5,7 @@ use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
 use std::iter::{Map, FromIterator};
+use std::str::Chars;
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -98,8 +99,8 @@ impl<V> TST<V> {
     pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
         assert!(key.len() > 0, "Empty key");
         assert!(key.len() < 2000, "Key is too long");
-
-        let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
+        let mut iter = key.chars();
+        let cur = Node::insert_node(&mut self.root, iter.next(), iter);
         let ret = mem::replace(&mut cur.val, Some(val));
         if ret.is_none() { self.size += 1 }
         ret
@@ -124,7 +125,8 @@ impl<V> TST<V> {
     pub fn entry(&mut self, key: &str) -> Entry<V> {
         assert!(key.len() > 0, "Empty key");
         let l = &mut self.size;
-        let cur = Node::insert_node(&mut self.root, key.chars().collect(), 0);
+        let mut iter = key.chars();
+        let cur = Node::insert_node(&mut self.root, iter.next(), iter);
         Entry::<V>::new(cur, l)
     }
 
@@ -142,7 +144,8 @@ impl<V> TST<V> {
     /// assert_eq!(None, m.remove("abc"));
     /// ```
     pub fn remove(&mut self, key: &str) -> Option<V> {
-        let ret = Node::remove(&mut self.root, key.chars().collect(), 0);
+        let mut iter = key.chars();
+        let ret = Node::remove(&mut self.root, iter.next(), iter);
         if ret.is_some() {
             self.size -= 1;
             if self.root.as_ref().unwrap().is_leaf() {
@@ -165,7 +168,8 @@ impl<V> TST<V> {
     /// assert_eq!(None, m.get("second"));
     /// ```
     pub fn get(&self, key: &str) -> Option<&V> {
-        let node = Node::get(&self.root, key.chars().collect(), 0);
+        let mut iter = key.chars();
+        let node = Node::get(&self.root, iter.next(), iter);
         match node {
             None => None,
             Some(ptr) => {
@@ -197,7 +201,8 @@ impl<V> TST<V> {
     /// assert_eq!(-13, m["first"]);
     /// ```
     pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
-        let node = Node::get_mut(&mut self.root, key.chars().collect(), 0);
+        let mut iter = key.chars();
+        let node = Node::get_mut(&mut self.root, iter.next(), iter);
         match node {
             None => None,
             Some(ptr) => {
@@ -350,7 +355,8 @@ impl<V> TST<V> {
     /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
     /// ```
     pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
-        let node = Node::get(&self.root, pref.chars().collect(), 0);
+        let mut iter = pref.chars();
+        let node = Node::get(&self.root, iter.next(), iter);
 
         match node {
             None => Default::default(),
@@ -380,7 +386,8 @@ impl<V> TST<V> {
     /// ```
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
         let len = self.len();
-        let node = Node::get_mut(&mut self.root, pref.chars().collect(), 0);
+        let mut iter = pref.chars();
+        let node = Node::get_mut(&mut self.root, iter.next(), iter);
         match node {
             None => Default::default(),
             Some(ptr) => IterMut::<V>::new_with_prefix(ptr, pref, len),
@@ -570,95 +577,105 @@ impl<V> Node<V> {
         }
     }
 
-    fn insert_node(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> &mut Box<Node<V>> {
-        let k = key[i];
-        match *node {
-            None => {
-                *node = Some(Box::new(Node::new(k)));
-                Node::insert_node(node, key, i)
-            }
-            Some(ref mut cur) => {
-                if k < cur.c {
-                    Node::insert_node(&mut cur.lt, key, i)
-                }
-                else if k > cur.c {
-                    Node::insert_node(&mut cur.gt, key, i)
-                }
-                else if i+1 < key.len() {
-                    Node::insert_node(&mut cur.eq, key, i+1)
-                }
-                else {
-                    cur
+    fn insert_node<'a>(node: &'a mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> &'a mut Box<Node<V>> {
+        match op_ch {
+            None => unreachable!(),
+            Some(ch) => {
+                match *node {
+                    None => {
+                        *node = Some(Box::new(Node::new(ch)));
+                        Node::insert_node(node, op_ch, iter)
+                    }
+                    Some(ref mut cur) => {
+                        if ch < cur.c {
+                            Node::insert_node(&mut cur.lt, op_ch, iter)
+                        }
+                        else if ch > cur.c {
+                            Node::insert_node(&mut cur.gt, op_ch, iter)
+                        }
+                        else if iter.size_hint().0 > 0 {
+                            Node::insert_node(&mut cur.eq, iter.next(), iter)
+                        }
+                        else {
+                            cur
+                        }
+                    }
                 }
             }
         }
     }
 
-    fn get(node: &Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
-            Option<&Option<Box<Node<V>>>>
+    fn get<'a>(node: &'a Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) ->
+            Option<&'a Option<Box<Node<V>>>>
     {
-        if i >= key.len() { return None; }
-        match *node {
+        match op_ch {
             None => None,
-            Some(ref cur) => {
-                let k = key[i];
-                if k < cur.c {
-                    Node::get(&cur.lt, key, i)
-                }
-                else if k > cur.c {
-                    Node::get(&cur.gt, key, i)
-                }
-                else if i + 1 < key.len() {
-                    Node::get(&cur.eq, key, i+1)
-                }
-                else {
-                    Some(node)
+            Some(ch) => {
+                match *node {
+                    None => None,
+                    Some(ref cur) => {
+                        if ch < cur.c {
+                            Node::get(&cur.lt, op_ch, iter)
+                        }
+                        else if ch > cur.c {
+                            Node::get(&cur.gt, op_ch, iter)
+                        }
+                        else if iter.size_hint().0 > 0 {
+                            Node::get(&cur.eq, iter.next(), iter)
+                        }
+                        else {
+                            Some(node)
+                        }
+                    }
                 }
             }
         }
     }
 
-    fn get_mut(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) ->
-            Option<&mut Option<Box<Node<V>>>>
+    fn get_mut<'a>(node: &'a mut Option<Box<Node<V>>>, op_ch: Option<char>, iter: Chars) ->
+            Option<&'a mut Option<Box<Node<V>>>>
     {
-        unsafe { mem::transmute(Node::get(node, key, i)) }
+        unsafe { mem::transmute(Node::get(node, op_ch, iter)) }
     }
 
     fn is_leaf(&self) -> bool {
         self.lt.is_none() && self.gt.is_none() && self.eq.is_none() && self.val.is_none()
     }
 
-    fn remove(node: &mut Option<Box<Node<V>>>, key: Vec<char>, i: usize) -> Option<V> {
-        if i >= key.len() { return None; }
-        match *node {
+    fn remove(node: &mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> Option<V> {
+        match op_ch {
             None => None,
-            Some(ref mut cur) => {
-                let k = key[i];
-                if k < cur.c {
-                    let ret = Node::remove(&mut cur.lt, key, i);
-                    if ret.is_some() && cur.lt.as_ref().unwrap().is_leaf() {
-                        mem::replace(&mut cur.lt, None);
-                    }
-                    ret
-                }
-                else if k > cur.c {
-                    let ret = Node::remove(&mut cur.gt, key, i);
-                    if ret.is_some() && cur.gt.as_ref().unwrap().is_leaf() {
-                        mem::replace(&mut cur.gt, None);
-                    }
-                    ret
-                }
-                else if i + 1 < key.len() {
-                    let ret = Node::remove(&mut cur.eq, key, i+1);
-                    if ret.is_some() && cur.eq.as_ref().unwrap().is_leaf() {
-                        mem::replace(&mut cur.eq, None);
-                    }
-                    ret
-                }
-                else {
-                    match cur.val {
-                        None => None,
-                        Some(_) => mem::replace(&mut cur.val, None)
+            Some(ch) => {
+                match *node {
+                    None => None,
+                    Some(ref mut cur) => {
+                        if ch < cur.c {
+                            let ret = Node::remove(&mut cur.lt, op_ch, iter);
+                            if ret.is_some() && cur.lt.as_ref().unwrap().is_leaf() {
+                                mem::replace(&mut cur.lt, None);
+                            }
+                            ret
+                        }
+                        else if ch > cur.c {
+                            let ret = Node::remove(&mut cur.gt, op_ch, iter);
+                            if ret.is_some() && cur.gt.as_ref().unwrap().is_leaf() {
+                                mem::replace(&mut cur.gt, None);
+                            }
+                            ret
+                        }
+                        else if iter.size_hint().0 > 0 {
+                            let ret = Node::remove(&mut cur.eq, iter.next(), iter);
+                            if ret.is_some() && cur.eq.as_ref().unwrap().is_leaf() {
+                                mem::replace(&mut cur.eq, None);
+                            }
+                            ret
+                        }
+                        else {
+                            match cur.val {
+                                None => None,
+                                Some(_) => mem::replace(&mut cur.val, None)
+                            }
+                        }
                     }
                 }
             }
@@ -957,7 +974,7 @@ impl<V> Iterator for IntoIter<V> {
         }
         None
     }
-fn size_hint(&self) -> (usize, Option<usize>) { (self.size, Some(self.size)) }
+    fn size_hint(&self) -> (usize, Option<usize>) { (self.size, Some(self.size)) }
 }
 
 impl<V> ExactSizeIterator for IntoIter<V> {
