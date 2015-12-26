@@ -17,5 +17,3 @@ It has special methods:
 TODO:
 - split into map and set
 - make non-reccursive
-- remove key.chars().collect()
-- add more docs
