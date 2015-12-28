@@ -168,8 +168,7 @@ impl<V> TST<V> {
     /// assert_eq!(None, m.get("second"));
     /// ```
     pub fn get(&self, key: &str) -> Option<&V> {
-        let mut iter = key.chars();
-        let node = Node::get(&self.root, iter.next(), iter);
+        let node = Node::get(&self.root, key);
         match node {
             None => None,
             Some(ptr) => {
@@ -201,8 +200,7 @@ impl<V> TST<V> {
     /// assert_eq!(-13, m["first"]);
     /// ```
     pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
-        let mut iter = key.chars();
-        let node = Node::get_mut(&mut self.root, iter.next(), iter);
+        let node = Node::get_mut(&mut self.root, key);
         match node {
             None => None,
             Some(ptr) => {
@@ -355,8 +353,7 @@ impl<V> TST<V> {
     /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
     /// ```
     pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
-        let mut iter = pref.chars();
-        let node = Node::get(&self.root, iter.next(), iter);
+        let node = Node::get(&self.root, pref);
 
         match node {
             None => Default::default(),
@@ -386,8 +383,7 @@ impl<V> TST<V> {
     /// ```
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
         let len = self.len();
-        let mut iter = pref.chars();
-        let node = Node::get_mut(&mut self.root, iter.next(), iter);
+        let node = Node::get_mut(&mut self.root, pref);
         match node {
             None => Default::default(),
             Some(ptr) => IterMut::<V>::new_with_prefix(ptr, pref, len),
@@ -605,37 +601,42 @@ impl<V> Node<V> {
         }
     }
 
-    fn get<'a>(node: &'a Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) ->
+    fn get<'a>(node: &'a Option<Box<Node<V>>>, key: &str) ->
             Option<&'a Option<Box<Node<V>>>>
     {
-        match op_ch {
-            None => None,
-            Some(ch) => {
-                match *node {
-                    None => None,
+        let mut iter = key.chars();
+        let mut cur_node = node;
+
+        while let Some(ch) = iter.next() {
+            let mut go_next = false;
+            while go_next == false {
+                cur_node = match *cur_node {
+                    None => { return None; }
                     Some(ref cur) => {
                         if ch < cur.c {
-                            Node::get(&cur.lt, op_ch, iter)
+                            &cur.lt
                         }
                         else if ch > cur.c {
-                            Node::get(&cur.gt, op_ch, iter)
+                            &cur.gt
                         }
                         else if iter.size_hint().0 > 0 {
-                            Node::get(&cur.eq, iter.next(), iter)
+                            go_next = true;
+                            &cur.eq
                         }
                         else {
-                            Some(node)
+                            return Some(cur_node);
                         }
                     }
                 }
             }
         }
+        None
     }
 
-    fn get_mut<'a>(node: &'a mut Option<Box<Node<V>>>, op_ch: Option<char>, iter: Chars) ->
+    fn get_mut<'a>(node: &'a mut Option<Box<Node<V>>>, key: &str) ->
             Option<&'a mut Option<Box<Node<V>>>>
     {
-        unsafe { mem::transmute(Node::get(node, op_ch, iter)) }
+        unsafe { mem::transmute(Node::get(node, key)) }
     }
 
     fn is_leaf(&self) -> bool {
