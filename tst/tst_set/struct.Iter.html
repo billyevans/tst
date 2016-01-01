@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `IterMut` struct in crate `tst`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, IterMut">
+    <meta name="description" content="API documentation for the Rust `Iter` struct in crate `tst`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Iter">
 
-    <title>tst::tst_map::IterMut - Rust</title>
+    <title>tst::tst_set::Iter - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -26,7 +26,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_map</a></p><script>window.sidebarCurrent = {name: 'IterMut', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_set</a></p><script>window.sidebarCurrent = {name: 'Iter', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -41,17 +41,16 @@
     </nav>
 
     <section id='main' class="content struct">
-<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_map</a>::<wbr><a class='struct' href=''>IterMut</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_set</a>::<wbr><a class='struct' href=''>Iter</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-370' class='srclink' href='../../src/tst/map.rs.html#653-655' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct IterMut&lt;'a, V: 'a&gt; {
+        </span><a id='src-580' class='srclink' href='../../src/tst/set.rs.html#12-14' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Iter&lt;'a&gt; {
     // some fields omitted
-}</pre><div class='docblock'><p>TSTMap mutable iterator.</p>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html' title='core::default::Default'>Default</a> for <a class='struct' href='../../tst/tst_map/struct.IterMut.html' title='tst::tst_map::IterMut'>IterMut</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='method.default' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#method.default' class='fnname'>default</a>() -&gt; <a class='struct' href='../../tst/tst_map/struct.IterMut.html' title='tst::tst_map::IterMut'>IterMut</a>&lt;'a, V&gt;</code></h4>
-</div><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Iterator</a> for <a class='struct' href='../../tst/tst_map/struct.IterMut.html' title='tst::tst_map::IterMut'>IterMut</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, &amp;'a mut V)</a></code></h4>
-<h4 id='method.next' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.next' class='fnname'>next</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, &amp;'a mut V)</a>&gt;</code></h4>
+}</pre><div class='docblock'><p>An iterator over a TSTSet&#39;s items.</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Iterator</a> for <a class='struct' href='../../tst/tst_set/struct.Iter.html' title='tst::tst_set::Iter'>Iter</a>&lt;'a&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<h4 id='method.next' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.next' class='fnname'>next</a>(&amp;mut self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
 <h4 id='method.size_hint' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.size_hint' class='fnname'>size_hint</a>(&amp;self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;)</a></code></h4>
 <h4 id='method.count' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.count' class='fnname'>count</a>(self) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <h4 id='method.last' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.last' class='fnname'>last</a>(self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Item</a>&gt;</code></h4>
@@ -98,6 +97,8 @@
 <h4 id='method.le' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.le' class='fnname'>le</a>&lt;I&gt;(self, other: I) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a> <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>, Self::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Item</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html' title='core::cmp::PartialOrd'>PartialOrd</a>&lt;I::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>Item</a>&gt;</span></code></h4>
 <h4 id='method.gt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.gt' class='fnname'>gt</a>&lt;I&gt;(self, other: I) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a> <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>, Self::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Item</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html' title='core::cmp::PartialOrd'>PartialOrd</a>&lt;I::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>Item</a>&gt;</span></code></h4>
 <h4 id='method.ge' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html#method.ge' class='fnname'>ge</a>&lt;I&gt;(self, other: I) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a> <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>, Self::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html' title='core::iter::Iterator'>Item</a>: <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html' title='core::cmp::PartialOrd'>PartialOrd</a>&lt;I::<a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>Item</a>&gt;</span></code></h4>
+</div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl&lt;'a&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../../tst/tst_set/struct.Iter.html' title='tst::tst_set::Iter'>Iter</a>&lt;'a&gt;</code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../../tst/tst_set/struct.Iter.html' title='tst::tst_set::Iter'>Iter</a>&lt;'a&gt;</code></h4>
+<h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
 </div></section>
     <section id='search' class="content hidden"></section>
 

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TSTSet","A set based on a TSTMap."]]});
+initSidebarItems({"struct":[["Iter","An iterator over a TSTSet's items."],["TSTSet","A set based on a TSTMap."]]});
