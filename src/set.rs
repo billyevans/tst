@@ -1,9 +1,16 @@
-use tst_map::TSTMap;
+use tst_map::{TSTMap, KeysIter};
+use std::fmt::{self, Debug};
 
 /// A set based on a TSTMap.
 #[derive(Clone, PartialEq, Eq)]
 pub struct TSTSet {
     map: TSTMap<()>,
+}
+
+/// An iterator over a TSTSet's items.
+#[derive(Clone)]
+pub struct Iter<'a> {
+    iter: KeysIter<'a, ()>
 }
 
 impl TSTSet {
@@ -119,4 +126,40 @@ impl TSTSet {
     pub fn remove(&mut self, key: &str) -> bool {
         self.map.remove(key).is_some()
     }
+
+    /// Gets an iterator over the TSTSet's contents.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::TSTSet;
+    ///
+    /// let mut s: TSTSet = TSTSet::new();
+    /// s.insert("abc");
+    /// s.insert("bde");
+    /// s.insert("cfgx");
+    /// for x in s.iter() {
+    ///     println!("{}", x);
+    /// }
+    /// ```
+    pub fn iter(&self) -> Iter {
+        Iter { iter: self.map.keys() }
+    }
+}
+
+impl Debug for TSTSet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        try!(write!(f, "{{"));
+        for x in self.iter() {
+            try!(write!(f, "{:?},", x));
+        }
+        (write!(f, "}}"))
+    }
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = String;
+
+    fn next(&mut self) -> Option<String> { self.iter.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
