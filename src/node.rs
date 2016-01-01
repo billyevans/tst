@@ -132,8 +132,8 @@ impl<V> Node<V> {
         }
     }
 
-    pub fn replace(&mut self, val: V) -> Option<V> {
-        mem::replace(&mut self.val, Some(val))
+    pub fn replace(&mut self, val: Option<V>) -> Option<V> {
+        mem::replace(&mut self.val, val)
     }
 
 }

@@ -59,7 +59,6 @@ impl<V> TSTMap<V> {
     /// use tst::TSTMap;
     /// let mut t: TSTMap<i64> = TSTMap::new();
     /// ```
-    #[inline]
     pub fn new() -> TSTMap<V> {
         TSTMap { root: None, size: 0 }
     }
@@ -77,7 +76,6 @@ impl<V> TSTMap<V> {
     /// m.insert("x", 1);
     /// assert_eq!(2, m.len());
     /// ```
-    #[inline]
     pub fn len(&self) -> usize { self.size }
 
     /// Inserts an element at key `key` with value `val`.
@@ -102,7 +100,7 @@ impl<V> TSTMap<V> {
         assert!(key.len() < 2000, "Key is too long");
         let mut iter = key.chars();
         let cur = Node::insert_node(&mut self.root, iter.next(), iter);
-        let old = cur.replace(val);
+        let old = cur.replace(Some(val));
         if old.is_none() { self.size += 1 }
         old
     }
@@ -913,12 +911,12 @@ impl<'a, V> OccupiedEntry<'a, V> {
     }
     /// Sets the value of the entry, and returns the entry's old value
     pub fn insert(&mut self, value: V) -> V {
-        mem::replace(&mut self.node.val, Some(value)).unwrap()
+        self.node.replace(Some(value)).unwrap()
     }
     /// Takes the value out of the entry, and returns it
     pub fn remove(self) -> V {
         *self.cont_size -= 1;
-        mem::replace(&mut self.node.val, None).unwrap()
+        self.node.replace(None).unwrap()
     }
 }
 
