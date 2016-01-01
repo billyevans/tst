@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["tstmap!","Create a `TST` containing a given list of elements:\n"]],"mod":[["tst","TST container map implementation."]]});
+initSidebarItems({"macro":[["tstmap!","Create a `TST` containing a given list of elements:\n"]],"mod":[["tst_map",""]],"struct":[["TSTMap",""]]});
