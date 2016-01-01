@@ -18,5 +18,6 @@ script:
 
 after_success:
   - export PATH=$PATH:$HOME/kcov/bin
-  - bash install-kcov.sh && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/ut-*
+  - bash install-kcov.sh && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/map_ut-* \
+                         && kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/set_ut-*
   - bash deploy-docs.sh
