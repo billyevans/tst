@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `OccupiedEntry` struct in crate `tst`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, OccupiedEntry">
+    <meta name="description" content="API documentation for the Rust `tst_set` mod in crate `tst`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, tst_set">
 
-    <title>tst::tst_map::OccupiedEntry - Rust</title>
+    <title>tst::tst_set - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -26,7 +26,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_map</a></p><script>window.sidebarCurrent = {name: 'OccupiedEntry', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>tst</a></p><script>window.sidebarCurrent = {name: 'tst_set', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -40,27 +40,23 @@
         </form>
     </nav>
 
-    <section id='main' class="content struct">
-<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>tst</a>::<wbr><a href='index.html'>tst_map</a>::<wbr><a class='struct' href=''>OccupiedEntry</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>tst</a>::<wbr><a class='mod' href=''>tst_set</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-492' class='srclink' href='../../src/tst/map.rs.html#845-848' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct OccupiedEntry&lt;'a, V: 'a&gt; {
-    // some fields omitted
-}</pre><div class='docblock'><p>A view into a single occupied location in a TSTMap.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='struct' href='../../tst/tst_map/struct.OccupiedEntry.html' title='tst::tst_map::OccupiedEntry'>OccupiedEntry</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self) -&gt; &amp;V</code></h4>
-<div class='docblock'><p>Gets a reference to the value in the entry.</p>
-</div><h4 id='method.get_mut' class='method'><code>fn <a href='#method.get_mut' class='fnname'>get_mut</a>(&amp;mut self) -&gt; &amp;mut V</code></h4>
-<div class='docblock'><p>Gets a mutable reference to the value in the entry.</p>
-</div><h4 id='method.into_mut' class='method'><code>fn <a href='#method.into_mut' class='fnname'>into_mut</a>(self) -&gt; &amp;'a mut V</code></h4>
-<div class='docblock'><p>Converts the OccupiedEntry into a mutable reference to the value in the entry
-with a lifetime bound to the TSTMap itself</p>
-</div><h4 id='method.insert' class='method'><code>fn <a href='#method.insert' class='fnname'>insert</a>(&amp;mut self, value: V) -&gt; V</code></h4>
-<div class='docblock'><p>Sets the value of the entry, and returns the entry&#39;s old value</p>
-</div><h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(self) -&gt; V</code></h4>
-<div class='docblock'><p>Takes the value out of the entry, and returns it</p>
-</div></div></section>
+        </span><a id='src-599' class='srclink' href='../../src/tst/lib.rs.html#86-88' title='goto source code'>[src]</a></span></h1>
+<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.TSTSet.html'
+                               title='tst::tst_set::TSTSet'>TSTSet</a></td>
+                        <td class='docblock short'>
+                             <p>A set based on a TSTMap.</p>
+
+                        </td>
+                    </tr>
+                </table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

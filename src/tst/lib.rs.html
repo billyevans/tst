@@ -85,10 +85,53 @@
 <span id="43">43</span>
 <span id="44">44</span>
 <span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Ternary search trie (TST) container.</span>
 
-<span class='doccomment'>/// - Create a `TST` containing a given list of elements:</span>
+<span class='doccomment'>/// - Create a `TSTMap` containing a given list of elements:</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// # Examples</span>
 <span class='doccomment'>///</span>
@@ -122,14 +165,57 @@
     }};
 }
 
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>tst_map</span>::<span class='ident'>TSTMap</span>;
+<span class='doccomment'>/// - Create a `TSTSet` containing a given list of elements:</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// # Examples</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// ```</span>
+<span class='doccomment'>/// #[macro_use]</span>
+<span class='doccomment'>/// extern crate tst;</span>
+<span class='doccomment'>/// # fn main() {</span>
+<span class='doccomment'>/// let s = tstset!{</span>
+<span class='doccomment'>///     &quot;bcb&quot;, &quot;bca&quot;, &quot;bcd&quot;</span>
+<span class='doccomment'>/// };</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// assert_eq!(3, s.len());</span>
+<span class='doccomment'>/// assert!(!s.contains(&quot;b&quot;));</span>
+<span class='doccomment'>/// assert!(!s.contains(&quot;bc&quot;));</span>
+<span class='doccomment'>/// assert!(s.contains(&quot;bca&quot;));</span>
+<span class='doccomment'>/// assert!(s.contains(&quot;bcb&quot;));</span>
+<span class='doccomment'>/// assert!(s.contains(&quot;bcd&quot;));</span>
+<span class='doccomment'>/// # }</span>
+<span class='doccomment'>/// ```</span>
+<span class='attribute'>#[<span class='ident'>macro_export</span>]</span>
+<span class='macro'>macro_rules</span><span class='macro'>!</span> <span class='ident'>tstset</span> {
+    () <span class='op'>=&gt;</span> {{
+        <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>TSTSet</span>::<span class='ident'>new</span>()
+    }};
+    <span class='comment'>// trailing comma case</span>
+    ($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>key</span>:<span class='ident'>expr</span>,)<span class='op'>+</span>) <span class='op'>=&gt;</span> (<span class='macro'>tstset</span><span class='macro'>!</span>($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>key</span>),<span class='op'>+</span>));
+    ($(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>key</span>: <span class='ident'>expr</span>),<span class='op'>*</span>) <span class='op'>=&gt;</span> {{
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>crate</span>::<span class='ident'>TSTSet</span>::<span class='ident'>new</span>();
+        $(
+            <span class='ident'>s</span>.<span class='ident'>insert</span>(<span class='macro-nonterminal'>$</span><span class='macro-nonterminal'>key</span>);
+        )<span class='op'>*</span>
+        <span class='ident'>s</span>
+    }};
+}
 
-<span class='doccomment'>/// TST container map implementation.</span>
+
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>tst_map</span>::<span class='ident'>TSTMap</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>tst_set</span>::<span class='ident'>TSTSet</span>;
+
+<span class='doccomment'>/// TST container map and set implementation.</span>
 <span class='kw'>mod</span> <span class='ident'>node</span>;
 <span class='kw'>mod</span> <span class='ident'>map</span>;
+<span class='kw'>mod</span> <span class='ident'>set</span>;
 
 <span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>tst_map</span> {
     <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>map</span>::<span class='op'>*</span>;
+}
+
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>tst_set</span> {
+    <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>set</span>::<span class='op'>*</span>;
 }
 </pre>
 </section>
