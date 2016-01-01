@@ -21,12 +21,12 @@
 #[macro_export]
 macro_rules! tstmap {
     () => {{
-        $crate::tst::TST::new()
+        $crate::TSTMap::new()
     }};
     // trailing comma case
     ($($key:expr => $value:expr,)+) => (tstmap!($($key => $value),+));
     ($( $key: expr => $val: expr ),*) => {{
-        let mut m = $crate::tst::TST::new();
+        let mut m = $crate::TSTMap::new();
         $(
             m.insert($key, $val);
         )*
@@ -34,9 +34,12 @@ macro_rules! tstmap {
     }};
 }
 
-pub use tst::TST;
+pub use tst_map::TSTMap;
 
 /// TST container map implementation.
-pub mod tst;
-// FIXME: uncomment, when test became stable
-// mod bench;
+mod node;
+mod map;
+
+pub mod tst_map {
+    pub use map::*;
+}

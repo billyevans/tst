@@ -5,11 +5,11 @@ use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
 use std::iter::{Map, FromIterator};
-use std::str::Chars;
+use super::node::Node;
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
-/// trie (TST).
+/// trie (TSTMap).
 ///
 /// There is character on each node of the trie, value and links for children.
 /// Each node has 3 children: smaller (lt), equal (eq), larger (gt).
@@ -18,9 +18,9 @@ use std::str::Chars;
 /// # Examples
 ///
 /// ```rust
-/// use tst::tst::TST;
+/// use tst::TSTMap;
 ///
-/// let mut m = TST::new();
+/// let mut m = TSTMap::new();
 ///
 /// m.insert("first", 1);
 /// m.insert("second", 2);
@@ -42,26 +42,26 @@ use std::str::Chars;
 /// }
 /// ```
 
-// by design TST depends on order of inserts in it, not only on keys and data itself
+// by design TSTMap depends on order of inserts in it, not only on keys and data itself
 
-/// Root struct for TST, which holds root and size.
+/// Root struct for TSTMap, which holds root and size.
 #[derive(Clone, PartialEq, Eq)]
-pub struct TST<V> {
+pub struct TSTMap<V> {
     root: Option<Box<Node<V>>>,
     size: usize,
 }
 
-impl<V> TST<V> {
-    /// Constructs a new, empty `TST<V>`.
+impl<V> TSTMap<V> {
+    /// Constructs a new, empty `TSTMap<V>`.
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
-    /// let mut t: TST<i64> = TST::new();
+    /// use tst::TSTMap;
+    /// let mut t: TSTMap<i64> = TSTMap::new();
     /// ```
     #[inline]
-    pub fn new() -> TST<V> {
-        TST { root: None, size: 0 }
+    pub fn new() -> TSTMap<V> {
+        TSTMap { root: None, size: 0 }
     }
 
     /// Returns the number of elements in the container.
@@ -69,9 +69,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// assert_eq!(0, m.len());
     /// m.insert("ab", 2);
     /// m.insert("x", 1);
@@ -89,31 +89,32 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("SOmeWOrd", 2);
     /// m.insert("SOmeOtherWOrd", 4);
     /// assert_eq!(2, m.len());
     /// ```
     pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
+        // stack protection, because of recusive
         assert!(key.len() > 0, "Empty key");
         assert!(key.len() < 2000, "Key is too long");
         let mut iter = key.chars();
         let cur = Node::insert_node(&mut self.root, iter.next(), iter);
-        let ret = mem::replace(&mut cur.val, Some(val));
-        if ret.is_none() { self.size += 1 }
-        ret
+        let old = cur.replace(val);
+        if old.is_none() { self.size += 1 }
+        old
     }
 
-    /// Gets the given key's corresponding entry in the TST for in-place manipulation.
+    /// Gets the given key's corresponding entry in the TSTMap for in-place manipulation.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut count: TST<usize> = TST::new();
+    /// let mut count: TSTMap<usize> = TSTMap::new();
     ///
     /// for x in vec!["abc","bad","abd","cdddd","abc","bade"] {
     ///     *count.entry(x).or_insert(0) += 1;
@@ -130,15 +131,15 @@ impl<V> TST<V> {
         Entry::<V>::new(cur, l)
     }
 
-    /// Removes a key from the TST, returning the value at the key if the key
-    /// was previously in the TST.
+    /// Removes a key from the TSTMap, returning the value at the key if the key
+    /// was previously in the TSTMap.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 100);
     /// assert_eq!(Some(100), m.remove("abc"));
     /// assert_eq!(None, m.remove("abc"));
@@ -160,9 +161,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("first", 13);
     /// assert_eq!(Some(&13), m.get("first"));
     /// assert_eq!(None, m.get("second"));
@@ -190,9 +191,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("first", 13);
     /// if let Some(x) = m.get_mut("first") {
     ///     *x = -13;
@@ -217,13 +218,13 @@ impl<V> TST<V> {
         }
     }
 
-    /// Returns true if the TST contains a value for the specified key.
+    /// Returns true if the TSTMap contains a value for the specified key.
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// assert!(!m.contains_key("ab"));
     /// assert!(m.contains_key("abc"))
@@ -233,14 +234,14 @@ impl<V> TST<V> {
         self.get(key).is_some()
     }
 
-    /// Returns true if the TST contains no elements.
+    /// Returns true if the TSTMap contains no elements.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// assert!(m.is_empty());
     ///
     /// m.insert("abc", 1);
@@ -249,14 +250,14 @@ impl<V> TST<V> {
     #[inline]
     pub fn is_empty(&self) -> bool { self.size == 0 }
 
-    /// Clears the TST.
+    /// Clears the TSTMap.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// m.insert("abd", 100);
     /// m.clear();
@@ -264,7 +265,7 @@ impl<V> TST<V> {
     /// assert!(m.is_empty());
     /// assert_eq!(None, m.get("abc"));
     /// ```
-    pub fn clear(&mut self) { *self = TST::<V>::new(); }
+    pub fn clear(&mut self) { *self = TSTMap::<V>::new(); }
 
     /// An iterator returning all nodes matching wildcard pattern.
     /// Iterator element type is (String, V)
@@ -272,9 +273,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("a", 1);
     /// m.insert("b", 2);
     /// m.insert("c", 3);
@@ -287,13 +288,13 @@ impl<V> TST<V> {
         WildCardIter::<V>::new(&self.root, pat, self.len())
     }
 
-    /// Method returns longest prefix in the TST
+    /// Method returns longest prefix in the TSTMap
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
-    /// let mut m = TST::new();
+    /// use tst::TSTMap;
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// m.insert("abcd", 1);
     /// m.insert("abce", 1);
@@ -331,12 +332,12 @@ impl<V> TST<V> {
         return &pref[..length];
     }
 
-    /// Method returns iterator over all values with common prefix in the TST
+    /// Method returns iterator over all values with common prefix in the TSTMap
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
-    /// let mut m = TST::new();
+    /// use tst::TSTMap;
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// m.insert("abcd", 1);
     /// m.insert("abce", 1);
@@ -361,12 +362,12 @@ impl<V> TST<V> {
         }
     }
 
-    /// Method returns mutable iterator over all values with common prefix in the TST
+    /// Method returns mutable iterator over all values with common prefix in the TSTMap
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
-    /// let mut m = TST::new();
+    /// use tst::TSTMap;
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// m.insert("abcd", 1);
     /// m.insert("abce", 1);
@@ -390,14 +391,14 @@ impl<V> TST<V> {
         }
     }
 
-    /// Gets an iterator over the entries of the TST.
+    /// Gets an iterator over the entries of the TSTMap.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("abc", 1);
     /// m.insert("bbc", 2);
     /// m.insert("cccda", 3);
@@ -414,14 +415,14 @@ impl<V> TST<V> {
         Iter::<V>::new(&self.root, len, len)
     }
 
-    /// Gets a mutable iterator over the entries of the TST.
+    /// Gets a mutable iterator over the entries of the TSTMap.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("a", 1);
     /// m.insert("b", 2);
     /// m.insert("c", 3);
@@ -445,9 +446,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("a", 1);
     /// m.insert("b", 2);
     /// m.insert("c", 3);
@@ -467,9 +468,9 @@ impl<V> TST<V> {
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("a", 1);
     /// m.insert("b", 2);
     /// m.insert("c", 3);
@@ -484,20 +485,20 @@ impl<V> TST<V> {
     }
 }
 
-impl<V> IntoIterator for TST<V> {
+impl<V> IntoIterator for TSTMap<V> {
     type Item = (String, V);
     type IntoIter = IntoIter<V>;
 
     /// Creates a consuming iterator, that is, one that moves each key-value
-    /// pair out of the TST in arbitrary order. The TST cannot be used after
+    /// pair out of the TSTMap in arbitrary order. The TSTMap cannot be used after
     /// calling this.
     ///
     /// # Examples
     ///
     /// ```
-    /// use tst::tst::TST;
+    /// use tst::TSTMap;
     ///
-    /// let mut m = TST::new();
+    /// let mut m = TSTMap::new();
     /// m.insert("a", 1);
     /// m.insert("b", 2);
     /// m.insert("c", 3);
@@ -509,9 +510,9 @@ impl<V> IntoIterator for TST<V> {
     }
 }
 
-impl<'x, V> FromIterator<(&'x str, V)> for TST<V> {
-    fn from_iter<I: IntoIterator<Item = (&'x str, V)>>(iter: I) -> TST<V> {
-        let mut m = TST::new();
+impl<'x, V> FromIterator<(&'x str, V)> for TSTMap<V> {
+    fn from_iter<I: IntoIterator<Item = (&'x str, V)>>(iter: I) -> TSTMap<V> {
+        let mut m = TSTMap::new();
         for item in iter {
             m.insert(item.0, item.1);
         }
@@ -519,7 +520,7 @@ impl<'x, V> FromIterator<(&'x str, V)> for TST<V> {
     }
 }
 
-impl<'x, V> Extend<(&'x str, V)> for TST<V> {
+impl<'x, V> Extend<(&'x str, V)> for TSTMap<V> {
     #[inline]
     fn extend<I: IntoIterator<Item=(&'x str, V)>>(&mut self, iter: I) {
         for (k, v) in iter {
@@ -528,7 +529,7 @@ impl<'x, V> Extend<(&'x str, V)> for TST<V> {
     }
 }
 
-impl<'x, V> ops::Index<&'x str> for TST<V> {
+impl<'x, V> ops::Index<&'x str> for TSTMap<V> {
     type Output = V;
     #[inline]
     fn index(&self, idx: &str) -> &V {
@@ -536,14 +537,14 @@ impl<'x, V> ops::Index<&'x str> for TST<V> {
     }
 }
 
-impl<'x, V> ops::IndexMut<&'x str> for TST<V> {
+impl<'x, V> ops::IndexMut<&'x str> for TSTMap<V> {
     #[inline]
     fn index_mut(&mut self, idx: &str) -> &mut V {
         self.get_mut(idx).expect("no entry found for key")
     }
 }
 
-impl<V: Debug> Debug for TST<V> {
+impl<V: Debug> Debug for TSTMap<V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{{"));
         for (k, v) in self.iter() {
@@ -553,151 +554,11 @@ impl<V: Debug> Debug for TST<V> {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
-struct Node<V> {
-    lt: Option<Box<Node<V>>>,
-    eq: Option<Box<Node<V>>>,
-    gt: Option<Box<Node<V>>>,
-    val: Option<V>,
-    c: char
-}
-
-impl<V> Node<V> {
-    fn new(c: char) -> Node<V> {
-        Node {
-            lt: None,
-            eq: None,
-            gt: None,
-            val: None,
-            c: c
-        }
-    }
-
-    fn insert_node<'a>(node: &'a mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> &'a mut Box<Node<V>> {
-        match op_ch {
-            None => unreachable!(),
-            Some(ch) => {
-                match *node {
-                    None => {
-                        *node = Some(Box::new(Node::new(ch)));
-                        Node::insert_node(node, op_ch, iter)
-                    }
-                    Some(ref mut cur) => {
-                        if ch < cur.c {
-                            Node::insert_node(&mut cur.lt, op_ch, iter)
-                        }
-                        else if ch > cur.c {
-                            Node::insert_node(&mut cur.gt, op_ch, iter)
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            Node::insert_node(&mut cur.eq, iter.next(), iter)
-                        }
-                        else {
-                            cur
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fn get<'a>(node: &'a Option<Box<Node<V>>>, key: &str) ->
-            Option<&'a Option<Box<Node<V>>>>
-    {
-        let mut iter = key.chars();
-        let mut cur_node = node;
-
-        while let Some(ch) = iter.next() {
-            let mut go_next = false;
-            while go_next == false {
-                cur_node = match *cur_node {
-                    None => { return None; }
-                    Some(ref cur) => {
-                        if ch < cur.c {
-                            &cur.lt
-                        }
-                        else if ch > cur.c {
-                            &cur.gt
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            go_next = true;
-                            &cur.eq
-                        }
-                        else {
-                            return Some(cur_node);
-                        }
-                    }
-                }
-            }
-        }
-        None
-    }
-
-    fn get_mut<'a>(node: &'a mut Option<Box<Node<V>>>, key: &str) ->
-            Option<&'a mut Option<Box<Node<V>>>>
-    {
-        unsafe { mem::transmute(Node::get(node, key)) }
-    }
-
-    fn is_leaf(&self) -> bool {
-        self.lt.is_none() && self.gt.is_none() && self.eq.is_none() && self.val.is_none()
-    }
-
-    fn remove(node: &mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> Option<V> {
-        match op_ch {
-            None => None,
-            Some(ch) => {
-                match *node {
-                    None => None,
-                    Some(ref mut cur) => {
-                        if ch < cur.c {
-                            let ret = Node::remove(&mut cur.lt, op_ch, iter);
-                            if ret.is_some() && cur.lt.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.lt, None);
-                            }
-                            ret
-                        }
-                        else if ch > cur.c {
-                            let ret = Node::remove(&mut cur.gt, op_ch, iter);
-                            if ret.is_some() && cur.gt.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.gt, None);
-                            }
-                            ret
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            let ret = Node::remove(&mut cur.eq, iter.next(), iter);
-                            if ret.is_some() && cur.eq.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.eq, None);
-                            }
-                            ret
-                        }
-                        else {
-                            match cur.val {
-                                None => None,
-                                Some(_) => mem::replace(&mut cur.val, None)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-impl<V: Debug> Debug for Node<V> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{{\n"));
-        try!(write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
-            self.lt, self.eq, self.gt, self.val, self.c));
-        (write!(f, "}}\n"))
-    }
-}
-
 //
 // iterators section
 //
 
-/// TST iterator.
+/// TSTMap iterator.
 #[derive(Clone)]
 pub struct Iter<'a, V: 'a> {
     stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>)>,
@@ -790,7 +651,7 @@ impl<'a, V> Iterator for Iter<'a, V> {
     }
 }
 
-/// TST mutable iterator.
+/// TSTMap mutable iterator.
 pub struct IterMut<'a, V: 'a> {
     iter: Iter<'a, V>,
 }
@@ -827,7 +688,7 @@ impl<'a, V> Iterator for IterMut<'a, V> {
     }
 }
 
-/// TST keys iterator
+/// TSTMap keys iterator
 #[derive(Clone)]
 pub struct KeysIter<'a, V: 'a> {
     iter: Map<Iter<'a, V>, fn((String, &'a V)) -> String>,
@@ -840,7 +701,7 @@ impl<'a, V:'a> Iterator for KeysIter<'a, V> {
 }
 
 
-/// TST values iterator
+/// TSTMap values iterator
 pub struct ValuesIter<'a, V:'a> {
     iter: Map<Iter<'a, V>, fn((String, &'a V)) -> &'a V>,
 }
@@ -851,7 +712,7 @@ impl<'a, V:'a> Iterator for ValuesIter<'a, V> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TST wild-card iterator.
+/// TSTMap wild-card iterator.
 #[derive(Clone)]
 pub struct WildCardIter<'a, V: 'a> {
     stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>, usize)>,
@@ -920,14 +781,14 @@ impl<'a, V> Iterator for WildCardIter<'a, V> {
     }
 }
 
-/// TST consuming iterator
+/// TSTMap consuming iterator
 pub struct IntoIter<V> {
     stack: Vec<(Option<Box<Node<V>>>, String, Option<V>)>,
     size: usize,
 }
 
 impl<V> IntoIter<V> {
-    fn new(tst: TST<V>) -> IntoIter<V> {
+    fn new(tst: TSTMap<V>) -> IntoIter<V> {
         let size = tst.len();
         IntoIter {
             stack: vec![(tst.root, "".to_string(), None)],
@@ -982,18 +843,18 @@ impl<V> ExactSizeIterator for IntoIter<V> {
     fn len(&self) -> usize { self.size }
 }
 
-/// A view into a single occupied location in a TST.
+/// A view into a single occupied location in a TSTMap.
 pub struct OccupiedEntry<'a, V: 'a> {
     node: &'a mut Box<Node<V>>,
     cont_size: &'a mut usize,
 }
 
-/// A view into a single empty location in a TST.
+/// A view into a single empty location in a TSTMap.
 pub struct VacantEntry<'a, V: 'a> {
     node: &'a mut Box<Node<V>>,
 }
 
-/// A view into a single location in a TST, which may be vacant or occupied.
+/// A view into a single location in a TSTMap, which may be vacant or occupied.
 pub enum Entry<'a, V: 'a> {
     /// A vacant Entry
     Occupied(OccupiedEntry<'a, V>),
@@ -1046,7 +907,7 @@ impl<'a, V> OccupiedEntry<'a, V> {
         self.node.val.as_mut().unwrap()
     }
     /// Converts the OccupiedEntry into a mutable reference to the value in the entry
-    /// with a lifetime bound to the tst itself
+    /// with a lifetime bound to the TSTMap itself
     pub fn into_mut(self) -> &'a mut V {
         self.node.val.as_mut().unwrap()
     }

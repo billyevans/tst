@@ -1,10 +1,10 @@
 #[macro_use] extern crate tst;
 
-use self::tst::TST;
-use self::tst::tst::Entry::*;
+use self::tst::TSTMap;
+use self::tst::tst_map::Entry::*;
 use std::iter::FromIterator;
 
-fn prepare_data() -> TST<i32> {
+fn prepare_data() -> TSTMap<i32> {
     tstmap! {
         "BY" => 1,
         "BYGONE" => 3,
@@ -24,13 +24,13 @@ fn prepare_data() -> TST<i32> {
 
 #[test]
 fn create_root() {
-    let m = TST::<i32>::new();
+    let m = TSTMap::<i32>::new();
     assert_eq!(0, m.len());
 }
 
 #[test]
 fn insert() {
-    let mut m = TST::<i32>::new();
+    let mut m = TSTMap::<i32>::new();
 
     assert_eq!(None, m.insert("abc", 13));
     assert_eq!(1, m.len());
@@ -38,7 +38,7 @@ fn insert() {
 
 #[test]
 fn insert_2times_without_replace() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.insert("abc", 37);
     assert_eq!(Some(37), m.insert("abc", 666));
     assert_eq!(Some(&666), m.get("abc"));
@@ -46,7 +46,7 @@ fn insert_2times_without_replace() {
 
 #[test]
 fn get() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abc", 13);
     assert_eq!(Some(&13), m.get("abc"));
@@ -54,7 +54,7 @@ fn get() {
 
 #[test]
 fn get_none() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abc", 13);
     assert_eq!(None, m.get("abcd"));
@@ -63,7 +63,7 @@ fn get_none() {
 
 #[test]
 fn get_mut() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.insert("abc", 1);
     match m.get_mut("abc") {
         Some(x) => *x = 13,
@@ -74,7 +74,7 @@ fn get_mut() {
 
 #[test]
 fn entry_occupied() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abcde", 13);
     m.insert("abcdf", 14);
@@ -90,7 +90,7 @@ fn entry_occupied() {
 
 #[test]
 fn entry_occupied_remove() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abcde", 13);
     m.insert("abcdf", 14);
@@ -106,7 +106,7 @@ fn entry_occupied_remove() {
 
 #[test]
 fn entry_occupied_update() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abcde", 13);
     m.insert("abcdf", 14);
@@ -131,7 +131,7 @@ fn entry_occupied_update() {
 
 #[test]
 fn entry_vacant() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abcde", 13);
     m.insert("abcdf", 14);
@@ -146,7 +146,7 @@ fn entry_vacant() {
 
 #[test]
 fn insert_few() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abcde", 13);
     m.insert("abcdf", 14);
@@ -161,7 +161,7 @@ fn insert_few() {
 
 #[test]
 fn replace() {
-    let mut m = TST::<i32>::new();
+    let mut m = TSTMap::<i32>::new();
 
     m.insert("abcde", 13);
     m.insert("abcde", 1);
@@ -172,7 +172,7 @@ fn replace() {
 
 #[test]
 fn contains() {
-    let mut m = TST::<i32>::new();
+    let mut m = TSTMap::<i32>::new();
 
     m.insert("xxxe", 13);
     assert!(!m.contains_key("abcde"));
@@ -182,7 +182,7 @@ fn contains() {
 
 #[test]
 fn is_empty() {
-    let mut m = TST::<u32>::new();
+    let mut m = TSTMap::<u32>::new();
 
     assert_eq!(0, m.len());
     assert!(m.is_empty());
@@ -196,7 +196,7 @@ fn is_empty() {
 
 #[test]
 fn clear() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.clear();
     assert_eq!(None, m.insert("abc", 11));
     assert_eq!(None, m.insert("abcd", -3));
@@ -209,7 +209,7 @@ fn clear() {
 
 #[test]
 fn remove_from_empty() {
-    let mut m = TST::<u32>::new();
+    let mut m = TSTMap::<u32>::new();
 
     assert_eq!(None, m.remove("xxx"));
     assert_eq!(None, m.remove(""));
@@ -248,7 +248,7 @@ fn remove_rich() {
 
 #[test]
 fn longest_prefix_empty() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.insert("abc", 1);
 
     assert_eq!("", m.longest_prefix("qwer"));
@@ -257,7 +257,7 @@ fn longest_prefix_empty() {
 
 #[test]
 fn longest_prefix() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.insert("abc", 1);
     m.insert("abcd", 1);
     m.insert("abce", 1);
@@ -272,7 +272,7 @@ fn longest_prefix() {
 
 #[test]
 fn access_by_index() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abc", 2);
     m.insert("abd", 1);
@@ -285,7 +285,7 @@ fn access_by_index() {
 
 #[test]
 fn access_by_index_mut() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abc", 2);
     m.insert("abd", 1);
@@ -303,7 +303,7 @@ fn access_by_index_mut() {
 #[test]
 #[should_panic]
 fn access_by_wrong_index() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("abc", 2);
     m.insert("abd", 1);
@@ -314,14 +314,14 @@ fn access_by_wrong_index() {
 
 #[test]
 fn format_empty() {
-    let m = TST::<u64>::new();
+    let m = TSTMap::<u64>::new();
 
     assert_eq!("{}", format!("{:?}", m));
 }
 
 #[test]
 fn format() {
-    let mut m = TST::<i64>::new();
+    let mut m = TSTMap::<i64>::new();
 
     m.insert("abc", 2);
     m.insert("abd", 1);
@@ -337,7 +337,7 @@ fn format() {
 
 #[test]
 fn iterator() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("b", 2);
     m.insert("a", 1);
@@ -353,7 +353,7 @@ fn iterator() {
 
 #[test]
 fn iterator_mut() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("b", 2);
     m.insert("a", 1);
@@ -390,7 +390,7 @@ fn into_iter() {
 #[test]
 fn from_iterator_empty() {
     let vec = vec![];
-    let m = TST::<i64>::from_iter(vec);
+    let m = TSTMap::<i64>::from_iter(vec);
 
     assert_eq!(true, m.is_empty());
 }
@@ -405,7 +405,7 @@ fn from_iterator() {
         ("aa", 13),
     };
 
-    let m = TST::from_iter(vec);
+    let m = TSTMap::from_iter(vec);
     let orig = tstmap! {
         "b" => 2,
         "c" => 4,
@@ -439,7 +439,7 @@ fn extend() {
 
 #[test]
 fn prefix_iterator_empty() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("bbc", 2);
     m.insert("abc", 1);
@@ -454,7 +454,7 @@ fn prefix_iterator_empty() {
 
 #[test]
 fn prefix_iterator() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("first", 1);
     m.insert("second", 2);
@@ -482,7 +482,7 @@ fn prefix_iterator_only_one() {
 
 #[test]
 fn prefix_iterator_mut() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
 
     m.insert("first", 1);
     m.insert("second", 2);
@@ -518,7 +518,7 @@ fn prefix_iterator_mut_empty() {
 
 #[test]
 fn keys_iterator() {
-    let mut m = TST::new();
+    let mut m = TSTMap::new();
     m.insert("abc", 1);
     m.insert("bcd", 2);
     m.insert("c", 3);
@@ -608,15 +608,15 @@ fn wild_card_iterator_empty() {
 
 #[test]
 fn eq_empty() {
-    let m1 = TST::<i32>::new();
-    let m2 = TST::<i32>::new();
+    let m1 = TSTMap::<i32>::new();
+    let m2 = TSTMap::<i32>::new();
     assert_eq!(m1, m2);
 }
 
 #[test]
 fn eq_non_empty() {
-    let mut m1 = TST::<i32>::new();
-    let mut m2 = TST::<i32>::new();
+    let mut m1 = TSTMap::<i32>::new();
+    let mut m2 = TSTMap::<i32>::new();
 
     m2.insert("abcdef", 100);
     m2.insert("xxx", 2);
@@ -628,8 +628,8 @@ fn eq_non_empty() {
 
 #[test]
 fn not_eq() {
-    let m1 = TST::<i32>::new();
-    let mut m2 = TST::<i32>::new();
+    let m1 = TSTMap::<i32>::new();
+    let mut m2 = TSTMap::<i32>::new();
 
     m2.insert("xxx", 2);
 
@@ -638,8 +638,8 @@ fn not_eq() {
 
 #[test]
 fn not_eq_different_order() {
-    let mut m1 = TST::<i32>::new();
-    let mut m2 = TST::<i32>::new();
+    let mut m1 = TSTMap::<i32>::new();
+    let mut m2 = TSTMap::<i32>::new();
 
     m2.insert("abcdef", 100);
     m2.insert("xxx", 2);
@@ -651,8 +651,8 @@ fn not_eq_different_order() {
 
 #[test]
 fn not_eq_only_value() {
-    let mut m1 = TST::<i32>::new();
-    let mut m2 = TST::<i32>::new();
+    let mut m1 = TSTMap::<i32>::new();
+    let mut m2 = TSTMap::<i32>::new();
 
     m2.insert("abcdef", 100);
     m2.insert("xxx", 2);
@@ -664,7 +664,7 @@ fn not_eq_only_value() {
 
 #[test]
 fn macros_ctor_empty() {
-    let m: TST<u64> = tstmap![];
+    let m: TSTMap<u64> = tstmap![];
 
     assert_eq!(0, m.len());
     assert_eq!(None, m.get("abc"));
@@ -686,7 +686,7 @@ fn macros_ctor() {
 #[test]
 #[should_panic]
 fn  overflow_stack() {
-    let mut m = TST::<i32>::new();
+    let mut m = TSTMap::<i32>::new();
     let mut key = String::new();
 
     while key.len() < 1000000 {

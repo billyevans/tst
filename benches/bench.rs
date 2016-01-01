@@ -2,16 +2,17 @@
 #![feature(test)]
 extern crate test;
 
-use tst::TST;
+#[macro_use] extern crate tst;
+use self::tst::TSTMap;
 use self::test::Bencher;
 use std::str;
 
-fn prepare() -> TST<i32> {
-    let mut m = TST::<i32>::new();
+fn prepare() -> TSTMap<i32> {
+    let mut m = TSTMap::<i32>::new();
     let mut key: &mut [u8] = &mut [b'b'; 10];
     m.insert(str::from_utf8(key).unwrap(), 13);
 
-    fn fill(m: &mut TST<i32>, key: &mut [u8], i: usize) {
+    fn fill(m: &mut TSTMap<i32>, key: &mut [u8], i: usize) {
         if i >= key.len() { return; }
         for ch in vec![b'b',b'a',b'c'] {
             key[i] = ch;
