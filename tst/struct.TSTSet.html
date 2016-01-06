@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-559' class='srclink' href='../src/tst/set.rs.html#6-8' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-560' class='srclink' href='../src/tst/set.rs.html#7-9' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct TSTSet {
     // some fields omitted
 }</pre><div class='docblock'><p>A set based on a TSTMap.</p>
@@ -137,7 +137,62 @@ present in the set.</p>
 <span class='kw'>for</span> <span class='ident'>x</span> <span class='kw'>in</span> <span class='ident'>s</span>.<span class='ident'>iter</span>() {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>x</span>);
 }</pre>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h4 id='method.wildcard_iter' class='method'><code>fn <a href='#method.wildcard_iter' class='fnname'>wildcard_iter</a>(&amp;self, pat: &amp;<a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../tst/tst_set/struct.WildCardIter.html' title='tst::tst_set::WildCardIter'>WildCardIter</a></code></h4>
+<div class='docblock'><p>An iterator returning all nodes matching wildcard pattern.
+Iterator element type is (String)</p>
+
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>TSTSet</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>s</span> <span class='op'>=</span> <span class='ident'>TSTSet</span>::<span class='ident'>new</span>();
+<span class='ident'>s</span>.<span class='ident'>insert</span>(<span class='string'>&quot;a&quot;</span>);
+<span class='ident'>s</span>.<span class='ident'>insert</span>(<span class='string'>&quot;b&quot;</span>);
+<span class='ident'>s</span>.<span class='ident'>insert</span>(<span class='string'>&quot;c&quot;</span>);
+
+<span class='kw'>for</span> <span class='ident'>x</span> <span class='kw'>in</span> <span class='ident'>s</span>.<span class='ident'>wildcard_iter</span>(<span class='string'>&quot;.&quot;</span>) {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>x</span>);
+}</pre>
+</div><h4 id='method.longest_prefix' class='method'><code>fn <a href='#method.longest_prefix' class='fnname'>longest_prefix</a>&lt;'a&gt;(&amp;self, pref: &amp;'a <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; &amp;'a <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+<div class='docblock'><p>Method returns longest prefix in the TSTSet.</p>
+
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>TSTSet</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>set</span> <span class='op'>=</span> <span class='ident'>TSTSet</span>::<span class='ident'>new</span>();
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>);
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='ident'>set</span>.<span class='ident'>longest_prefix</span>(<span class='string'>&quot;abcde&quot;</span>));</pre>
+</div><h4 id='method.prefix_iter' class='method'><code>fn <a href='#method.prefix_iter' class='fnname'>prefix_iter</a>(&amp;self, pref: &amp;<a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../tst/tst_set/struct.Iter.html' title='tst::tst_set::Iter'>Iter</a></code></h4>
+<div class='docblock'><p>Method returns iterator over all values with common prefix in the TSTSet.</p>
+
+<h1 id='examples' class='section-header'><a href='#examples'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>TSTSet</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>set</span> <span class='op'>=</span> <span class='ident'>TSTSet</span>::<span class='ident'>new</span>();
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>);
+<span class='ident'>set</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>);
+
+<span class='kw'>for</span> <span class='ident'>key</span> <span class='kw'>in</span> <span class='ident'>set</span>.<span class='ident'>prefix_iter</span>(<span class='string'>&quot;abc&quot;</span>) {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>key</span>);
+}
+
+<span class='kw'>let</span> <span class='ident'>first_key</span> <span class='op'>=</span> <span class='ident'>set</span>.<span class='ident'>iter</span>().<span class='ident'>next</span>().<span class='ident'>unwrap</span>();
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;abc&quot;</span>.<span class='ident'>to_string</span>(), <span class='ident'>first_key</span>);</pre>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
+<h4 id='assoc_type.IntoIter' class='type'><code>type IntoIter = <a class='struct' href='../tst/tst_set/struct.IntoIter.html' title='tst::tst_set::IntoIter'>IntoIter</a></code></h4>
+<h4 id='method.into_iter' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html#method.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../tst/tst_set/struct.IntoIter.html' title='tst::tst_set::IntoIter'>IntoIter</a></code></h4>
+</div><h3 class='impl'><code>impl&lt;'x&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.FromIterator.html' title='core::iter::FromIterator'>FromIterator</a>&lt;&amp;'x <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt; for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.from_iter' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.FromIterator.html#method.from_iter' class='fnname'>from_iter</a>&lt;I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>&lt;Item=&amp;'x <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;&gt;(iter: I) -&gt; <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h4>
+</div><h3 class='impl'><code>impl&lt;'x&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.Extend.html' title='core::iter::Extend'>Extend</a>&lt;&amp;'x <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt; for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.extend' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.Extend.html#method.extend' class='fnname'>extend</a>&lt;I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>&lt;Item=&amp;'x <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt;&gt;(&amp;mut self, iter: I)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
 </div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 </div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../tst/struct.TSTSet.html' title='tst::TSTSet'>TSTSet</a></code></h4>
