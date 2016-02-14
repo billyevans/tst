@@ -15,5 +15,4 @@ It has special methods:
 - longest_prefix - get longest prefix
 
 TODO:
-- split into map and set
 - make non-reccursive
