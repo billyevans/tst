@@ -1,11 +1,11 @@
-
 use std::mem;
 use std::ops;
 use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
 use std::iter::{Map, FromIterator};
-use super::node::Node;
+use super::node::{Node, NodeRef, marker, BoxedNode};
+use super::traverse::{self, Traverse, IntoTraverse, WildCardTraverse, DropTraverse};
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -46,21 +46,24 @@ use super::node::Node;
 
 /// Root struct for TSTMap, which holds root and size.
 #[derive(Clone, PartialEq, Eq)]
-pub struct TSTMap<V> {
-    root: Option<Box<Node<V>>>,
+pub struct TSTMap<Value> {
+    root: BoxedNode<Value>,
     size: usize,
 }
 
-impl<V> TSTMap<V> {
-    /// Constructs a new, empty `TSTMap<V>`.
+impl<Value> TSTMap<Value> {
+    /// Constructs a new, empty `TSTMap<Value>`.
     /// # Examples
     ///
     /// ```
     /// use tst::TSTMap;
     /// let mut t: TSTMap<i64> = TSTMap::new();
     /// ```
-    pub fn new() -> TSTMap<V> {
-        TSTMap { root: None, size: 0 }
+    pub fn new() -> TSTMap<Value> {
+        TSTMap {
+            root: Default::default(),
+            size: 0,
+        }
     }
 
     /// Returns the number of elements in the container.
@@ -94,15 +97,16 @@ impl<V> TSTMap<V> {
     /// m.insert("SOmeOtherWOrd", 4);
     /// assert_eq!(2, m.len());
     /// ```
-    pub fn insert(&mut self, key: &str, val: V) -> Option<V> {
-        // stack protection, because of recusive
+    pub fn insert(&mut self, key: &str, value: Value) -> Option<Value> {
         assert!(key.len() > 0, "Empty key");
-        assert!(key.len() < 2000, "Key is too long");
-        let mut iter = key.chars();
-        let cur = Node::insert_node(&mut self.root, iter.next(), iter);
-        let old = cur.replace(Some(val));
-        if old.is_none() { self.size += 1 }
-        old
+        //assert!(key.len() < 2000, "So big key");
+        match self.entry(key) {
+            Occupied(mut entry) => Some(entry.insert(value)),
+            Vacant(entry) => {
+                entry.insert(value);
+                None
+            }
+        }
     }
 
     /// Gets the given key's corresponding entry in the TSTMap for in-place manipulation.
@@ -121,12 +125,11 @@ impl<V> TSTMap<V> {
     /// assert_eq!(2, count["abc"]);
     /// assert_eq!(1, count["abd"]);
     /// ```
-    pub fn entry(&mut self, key: &str) -> Entry<V> {
+    pub fn entry(&mut self, key: &str) -> Entry<Value> {
         assert!(key.len() > 0, "Empty key");
         let l = &mut self.size;
-        let mut iter = key.chars();
-        let cur = Node::insert_node(&mut self.root, iter.next(), iter);
-        Entry::<V>::new(cur, l)
+        let cur = traverse::insert(self.root.as_mut(), key);
+        Entry::<Value>::new(cur, l)
     }
 
     /// Removes a key from the TSTMap, returning the value at the key if the key
@@ -142,14 +145,10 @@ impl<V> TSTMap<V> {
     /// assert_eq!(Some(100), m.remove("abc"));
     /// assert_eq!(None, m.remove("abc"));
     /// ```
-    pub fn remove(&mut self, key: &str) -> Option<V> {
-        let mut iter = key.chars();
-        let ret = Node::remove(&mut self.root, iter.next(), iter);
+    pub fn remove(&mut self, key: &str) -> Option<Value> {
+        let ret = traverse::remove(self.root.as_mut(), key);
         if ret.is_some() {
             self.size -= 1;
-            if self.root.as_ref().unwrap().is_leaf() {
-                mem::replace(&mut self.root, None);
-            }
         }
         ret
     }
@@ -166,20 +165,14 @@ impl<V> TSTMap<V> {
     /// assert_eq!(Some(&13), m.get("first"));
     /// assert_eq!(None, m.get("second"));
     /// ```
-    pub fn get(&self, key: &str) -> Option<&V> {
-        let node = Node::get(&self.root, key);
-        match node {
+    pub fn get(&self, key: &str) -> Option<&Value> {
+        match traverse::search(self.root.as_ref(), key) {
             None => None,
             Some(ptr) => {
-                match *ptr {
+                match ptr.value {
                     None => None,
-                    Some(ref cur) => {
-                        match cur.val {
-                            None => None,
-                            Some(ref r) => Some(r)
-                        }
-                    }
-                 }
+                    Some(ref r) => Some(r)
+                }
             }
         }
     }
@@ -198,19 +191,13 @@ impl<V> TSTMap<V> {
     /// }
     /// assert_eq!(-13, m["first"]);
     /// ```
-    pub fn get_mut(&mut self, key: &str) -> Option<&mut V> {
-        let node = Node::get_mut(&mut self.root, key);
-        match node {
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
+        match traverse::search_mut(self.root.as_ref_mut(), key) {
             None => None,
             Some(ptr) => {
-                match *ptr {
+                match ptr.value {
                     None => None,
-                    Some(ref mut cur) => {
-                        match cur.val {
-                            None => None,
-                            Some(ref mut r) => Some(r)
-                        }
-                    }
+                    Some(ref mut r) => Some(r)
                 }
             }
         }
@@ -263,7 +250,7 @@ impl<V> TSTMap<V> {
     /// assert!(m.is_empty());
     /// assert_eq!(None, m.get("abc"));
     /// ```
-    pub fn clear(&mut self) { *self = TSTMap::<V>::new(); }
+    pub fn clear(&mut self) { *self = TSTMap::<Value>::new(); }
 
     /// An iterator returning all nodes matching wildcard pattern.
     /// Iterator element type is (String, V)
@@ -282,8 +269,8 @@ impl<V> TSTMap<V> {
     ///     println!("{} -> {}", k, v);
     /// }
     /// ```
-    pub fn wildcard_iter(&self, pat: &str) -> WildCardIter<V> {
-        WildCardIter::<V>::new(&self.root, pat, self.len())
+    pub fn wildcard_iter(&self, pat: &str) -> WildCardIter<Value> {
+        WildCardIter::new(self.root.as_ref(), pat, self.len())
     }
 
     /// Method returns longest prefix in the TSTMap
@@ -303,31 +290,8 @@ impl<V> TSTMap<V> {
     ///
     /// assert_eq!("abcd", m.longest_prefix("abcde"));
     /// ```
-    pub fn longest_prefix<'a>(&self, pref: &'a str) -> &'a str {
-        let mut length: usize = 0;
-        let mut x = &self.root;
-        let mut i: usize = 0;
-        for k in pref.chars() {
-            loop {
-                match *x {
-                    None => {
-                        return &pref[..length];
-                    }
-                    Some(ref r) => {
-                        if k < r.c { x = &r.lt; }
-                        else if k > r.c { x = &r.gt; }
-                        else {
-                            i += 1;
-                            if r.val.is_some() { length = i; }
-                            x = &r.eq;
-                            break;
-                        }
-                    }
-                }
-
-            }
-        }
-        return &pref[..length];
+    pub fn longest_prefix<'x>(&self, pref: &'x str) -> &'x str {
+        traverse::longest_prefix(self.root.as_ref(), pref)
     }
 
     /// Method returns iterator over all values with common prefix in the TSTMap
@@ -351,13 +315,9 @@ impl<V> TSTMap<V> {
     /// let (first_key, first_value) = m.iter().next().unwrap();
     /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
     /// ```
-    pub fn prefix_iter(&self, pref: &str) -> Iter<V> {
-        let node = Node::get(&self.root, pref);
-
-        match node {
-            None => Default::default(),
-            Some(ptr) => Iter::<V>::new_with_prefix(ptr, pref, self.len())
-        }
+    pub fn prefix_iter(&self, pref: &str) -> Iter<Value> {
+        let node = traverse::search(self.root.as_ref(), pref);
+        Iter::<Value>::with_prefix(node, pref, self.len())
     }
 
     /// Method returns mutable iterator over all values with common prefix in the TSTMap
@@ -380,13 +340,10 @@ impl<V> TSTMap<V> {
     /// assert_eq!(101, m["abc"]);
     /// assert_eq!(101, m["abcdef"]);
     /// ```
-    pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<V> {
+    pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<Value> {
         let len = self.len();
-        let node = Node::get_mut(&mut self.root, pref);
-        match node {
-            None => Default::default(),
-            Some(ptr) => IterMut::<V>::new_with_prefix(ptr, pref, len),
-        }
+        let node = traverse::search(self.root.as_ref(), pref);
+        IterMut::<Value>::with_prefix(node, pref, len)
     }
 
     /// Gets an iterator over the entries of the TSTMap.
@@ -408,9 +365,9 @@ impl<V> TSTMap<V> {
     /// let (first_key, first_value) = m.iter().next().unwrap();
     /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
     /// ```
-    pub fn iter(&self) -> Iter<V> {
+    pub fn iter(&self) -> Iter<Value> {
         let len = self.len();
-        Iter::<V>::new(&self.root, len, len)
+        Iter::<Value>::new(self.root.as_ref(), len, len)
     }
 
     /// Gets a mutable iterator over the entries of the TSTMap.
@@ -433,9 +390,9 @@ impl<V> TSTMap<V> {
     /// assert_eq!(1, m["a"]);
     /// assert_eq!(12, m["b"]);
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut<V> {
+    pub fn iter_mut(&mut self) -> IterMut<Value> {
         let len = self.len();
-        IterMut::<V>::new(&mut self.root, len, len)
+        IterMut::<Value>::new(self.root.as_ref_mut(), len, len)
     }
 
     /// An iterator visiting all keys in arbitrary order.
@@ -455,7 +412,7 @@ impl<V> TSTMap<V> {
     ///     println!("{}", key);
     /// }
     /// ```
-    pub fn keys(&self) -> KeysIter<V> {
+    pub fn keys(&self) -> KeysIter<Value> {
         fn first<A, B>((k, _): (A, B)) -> A { k }
         KeysIter { iter: self.iter().map(first) }
     }
@@ -477,15 +434,15 @@ impl<V> TSTMap<V> {
     ///     println!("{}", value);
     /// }
     /// ```
-    pub fn values(&self) -> ValuesIter<V> {
+    pub fn values(&self) -> ValuesIter<Value> {
         fn second<A, B>((_, v): (A, B)) -> B { v }
         ValuesIter { iter: self.iter().map(second) }
     }
 }
 
-impl<V> IntoIterator for TSTMap<V> {
-    type Item = (String, V);
-    type IntoIter = IntoIter<V>;
+impl<Value> IntoIterator for TSTMap<Value> {
+    type Item = (String, Value);
+    type IntoIter = IntoIter<Value>;
 
     /// Creates a consuming iterator, that is, one that moves each key-value
     /// pair out of the TSTMap in arbitrary order. The TSTMap cannot be used after
@@ -503,13 +460,13 @@ impl<V> IntoIterator for TSTMap<V> {
     ///
     /// let vec: Vec<(String, isize)> = m.into_iter().collect();
     /// ```
-    fn into_iter(self) -> IntoIter<V> {
+    fn into_iter(self) -> IntoIter<Value> {
         IntoIter::new(self)
     }
 }
 
-impl<'x, V> FromIterator<(&'x str, V)> for TSTMap<V> {
-    fn from_iter<I: IntoIterator<Item = (&'x str, V)>>(iter: I) -> TSTMap<V> {
+impl<'x, Value> FromIterator<(&'x str, Value)> for TSTMap<Value> {
+    fn from_iter<I: IntoIterator<Item = (&'x str, Value)>>(iter: I) -> TSTMap<Value> {
         let mut m = TSTMap::new();
         for item in iter {
             m.insert(item.0, item.1);
@@ -518,31 +475,39 @@ impl<'x, V> FromIterator<(&'x str, V)> for TSTMap<V> {
     }
 }
 
-impl<'x, V> Extend<(&'x str, V)> for TSTMap<V> {
+impl<'x, Value> Extend<(&'x str, Value)> for TSTMap<Value> {
     #[inline]
-    fn extend<I: IntoIterator<Item=(&'x str, V)>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item=(&'x str, Value)>>(&mut self, iter: I) {
         for (k, v) in iter {
             self.insert(k, v);
         }
     }
 }
 
-impl<'x, V> ops::Index<&'x str> for TSTMap<V> {
-    type Output = V;
+impl<'x, Value> ops::Index<&'x str> for TSTMap<Value> {
+    type Output = Value;
     #[inline]
-    fn index(&self, idx: &str) -> &V {
+    fn index(&self, idx: &str) -> &Value {
         self.get(idx).expect("no entry found for key")
     }
 }
 
-impl<'x, V> ops::IndexMut<&'x str> for TSTMap<V> {
+impl<'x, Value> ops::IndexMut<&'x str> for TSTMap<Value> {
     #[inline]
-    fn index_mut(&mut self, idx: &str) -> &mut V {
+    fn index_mut(&mut self, idx: &str) -> &mut Value {
         self.get_mut(idx).expect("no entry found for key")
     }
 }
 
-impl<V: Debug> Debug for TSTMap<V> {
+impl<Value> Drop for TSTMap<Value> {
+    fn drop(&mut self) {
+        let root = mem::replace(&mut self.root.ptr, None);
+        let mut iter = DropTraverse::new(root);
+        for _ in iter.next() { }
+    }
+}
+
+impl<Value: Debug> Debug for TSTMap<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{{"));
         for (k, v) in self.iter() {
@@ -557,318 +522,166 @@ impl<V: Debug> Debug for TSTMap<V> {
 //
 
 /// TSTMap iterator.
-#[derive(Clone)]
-pub struct Iter<'a, V: 'a> {
-    stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>)>,
-    min_size: usize,
-    max_size: usize,
+#[derive(Clone, Default)]
+pub struct Iter<'x, Value: 'x> {
+    iter: Traverse<'x, Value>,
 }
 
-impl<'a, V> Iter<'a, V> {
-    fn new(ptr: &'a Option<Box<Node<V>>>, min: usize, max: usize) -> Iter<'a, V> {
+impl<'x, Value> Iter<'x, Value> {
+    fn new(node: NodeRef<marker::Immut<'x>, Value>, min: usize, max: usize) -> Self {
         Iter {
-            stack: vec![(Some(ptr), "".to_string(), None)],
-            min_size: min,
-            max_size: max,
+            iter: Traverse::new(node, min, max),
         }
     }
-    fn new_with_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> Iter<'a, V> {
-        let mut iter: Iter<V> = Default::default();
-        match *ptr {
-            None => (),
-            Some(ref cur) => {
-                iter.max_size = max;
-                if cur.val.is_some() {
-                    iter.min_size += 1;
-                    iter.stack.push((None, prefix.to_string(), Some(cur.val.as_ref().unwrap())));
-                }
-                if cur.eq.is_some() {
-                    iter.stack.push((Some(&cur.eq), prefix.to_string(), None));
-                }
-
-            }
-        }
-        iter
-    }
-}
-
-impl<'a, V> Default for Iter<'a, V> {
-    fn default() -> Iter<'a, V> {
+    fn with_prefix(node: Option<&'x Node<Value>>, prefix: &str, max: usize) -> Self {
         Iter {
-            stack: vec![],
-            min_size: 0,
-            max_size: 0,
+            iter: Traverse::with_prefix(node, prefix, max),
         }
     }
 }
 
-impl<'a, V> Iterator for Iter<'a, V> {
-    type Item = (String, &'a V);
-
-    fn next(&mut self) -> Option<(String, &'a V)> {
-        while !self.stack.is_empty() {
-            let node = self.stack.pop().unwrap();
-            match node.0 {
-                None => {
-                    if self.min_size == self.max_size {
-                        self.min_size -= 1;
-                    }
-                    self.max_size -= 1;
-                    return Some((node.1, node.2.unwrap()));
-                }
-                Some(n) => {
-                    match *n {
-                        None => {}
-                        Some(ref cur) => {
-                            let mut prefix = String::new();
-                            if cur.gt.is_some() {
-                                self.stack.push((Some(&cur.gt), node.1.clone(), None));
-                            }
-                            if cur.eq.is_some() || cur.val.is_some() {
-                                prefix.push_str(&node.1);
-                                prefix.push(cur.c);
-                            }
-                            if cur.eq.is_some() {
-                                self.stack.push((Some(&cur.eq), prefix.clone(), None));
-                            }
-                            if cur.val.is_some() {
-                                self.stack.push((None, prefix, Some(cur.val.as_ref().unwrap())));
-                            }
-                            if cur.lt.is_some() {
-                                self.stack.push((Some(&cur.lt), node.1.clone(), None));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        None
-    }
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.min_size, Some(self.max_size))
-    }
-}
-
-/// TSTMap mutable iterator.
-pub struct IterMut<'a, V: 'a> {
-    iter: Iter<'a, V>,
-}
-
-impl<'a, V> IterMut<'a, V> {
-    fn new(ptr: &'a mut Option<Box<Node<V>>>, min: usize, max: usize) -> IterMut<'a, V> {
-        IterMut {
-            iter : Iter::<V>::new(ptr, min, max),
-        }
-    }
-    fn new_with_prefix(ptr: &'a Option<Box<Node<V>>>, prefix: &str, max: usize) -> IterMut<'a, V> {
-        IterMut {
-            iter : Iter::<V>::new_with_prefix(ptr, prefix, max),
-        }
-    }
-}
-
-impl<'a, V> Default for IterMut<'a, V> {
-    fn default() -> IterMut<'a, V> {
-        IterMut {
-            iter : Default::default(),
-        }
-    }
-}
-
-impl<'a, V> Iterator for IterMut<'a, V> {
-    type Item = (String, &'a mut V);
-    fn next(&mut self) -> Option<(String, &'a mut V)> {
-        // just add mut, avoid copy-paste
-        unsafe { mem::transmute(self.iter.next()) }
+impl<'x, Value> Iterator for Iter<'x, Value> {
+    type Item = (String, &'x Value);
+    fn next(&mut self) -> Option<(String, &'x Value)> {
+        self.iter.next()
     }
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
 
-/// TSTMap keys iterator
-#[derive(Clone)]
-pub struct KeysIter<'a, V: 'a> {
-    iter: Map<Iter<'a, V>, fn((String, &'a V)) -> String>,
+/// TSTMap mutable iterator.
+#[derive(Clone, Default)]
+pub struct IterMut<'x, Value: 'x> {
+    iter: Traverse<'x, Value>,
 }
 
-impl<'a, V:'a> Iterator for KeysIter<'a, V> {
+impl<'x, Value> IterMut<'x, Value> {
+    fn new(node: NodeRef<marker::Mut<'x>, Value>, min: usize, max: usize) -> Self {
+        IterMut {
+            iter: Traverse::new(node.as_immut(), min, max),
+        }
+    }
+    fn with_prefix(ptr: Option<&'x Node<Value>>, prefix: &str, max: usize) -> Self {
+        IterMut {
+            iter: Traverse::with_prefix(ptr, prefix, max),
+        }
+    }
+}
+
+impl<'x, Value> Iterator for IterMut<'x, Value> {
+    type Item = (String, &'x mut Value);
+    fn next(&mut self) -> Option<(String, &'x mut Value)> {
+        // just add mut, avoid copy-paste
+        unsafe { mem::transmute(self.iter.next()) }
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+/// TSTMap keys iterator
+#[derive(Clone)]
+pub struct KeysIter<'x, Value: 'x> {
+    iter: Map<Iter<'x, Value>, fn((String, &'x Value)) -> String>,
+}
+
+impl<'x, Value:'x> Iterator for KeysIter<'x, Value> {
     type Item = String;
     fn next(&mut self) -> Option<String> { self.iter.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-
 /// TSTMap values iterator
-pub struct ValuesIter<'a, V:'a> {
-    iter: Map<Iter<'a, V>, fn((String, &'a V)) -> &'a V>,
+pub struct ValuesIter<'x, Value:'x> {
+    iter: Map<Iter<'x, Value>, fn((String, &'x Value)) -> &'x Value>,
 }
 
-impl<'a, V:'a> Iterator for ValuesIter<'a, V> {
-    type Item = &'a V;
-    fn next(&mut self) -> Option<&'a V> { self.iter.next() }
+impl<'x, Value:'x> Iterator for ValuesIter<'x, Value> {
+    type Item = &'x Value;
+    fn next(&mut self) -> Option<&'x Value> { self.iter.next() }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
 /// TSTMap wild-card iterator.
 #[derive(Clone)]
-pub struct WildCardIter<'a, V: 'a> {
-    stack: Vec<(Option<&'a Option<Box<Node<V>>>>, String, Option<&'a V>, usize)>,
-    max_size: usize,
-    pat: Vec<char>,
+pub struct WildCardIter<'x, Value: 'x> {
+    iter: WildCardTraverse<'x, Value>,
 }
 
-impl<'a, V> WildCardIter<'a, V> {
-    fn new(ptr: &'a Option<Box<Node<V>>>, pat: &str, max: usize) -> WildCardIter<'a, V> {
+impl<'x, Value> WildCardIter<'x, Value> {
+    fn new(node: NodeRef<marker::Immut<'x>, Value>, pat: &str, max: usize) -> Self {
         WildCardIter {
-            stack: vec![(Some(ptr), "".to_string(), None, 0)],
-            max_size: max,
-            pat: pat.chars().collect(),
+            iter: WildCardTraverse::new(node, pat, max),
         }
     }
 }
 
-impl<'a, V> Iterator for WildCardIter<'a, V> {
-    type Item = (String, &'a V);
-    fn next(&mut self) -> Option<(String, &'a V)> {
-        while !self.stack.is_empty() {
-            let node = self.stack.pop().unwrap();
-            match node.0 {
-                None => {
-                    self.max_size -= 1;
-                    return Some((node.1, node.2.unwrap()));
-                }
-                Some(n) => {
-                    match *n {
-                        None => {}
-                        Some(ref cur) => {
-                            let idx = node.3;
-                            let ch = self.pat[idx];
-                            let mut prefix = String::new();
-                            if (ch == '.' || ch > cur.c) && cur.gt.is_some() {
-                                self.stack.push((Some(&cur.gt), node.1.clone(), None, idx));
-                            }
-                            if ch == '.' || ch == cur.c {
-                                if
-                                    (idx+1 < self.pat.len() && cur.eq.is_some()) ||
-                                    (idx+1 == self.pat.len() && cur.val.is_some())
-                                {
-                                    prefix.push_str(&node.1);
-                                    prefix.push(cur.c);
-                                }
-                                if idx+1 < self.pat.len() && cur.eq.is_some() {
-                                    self.stack.push((Some(&cur.eq), prefix.clone(), None, idx+1));
-                                }
-
-                                if idx+1 == self.pat.len() && cur.val.is_some() {
-                                    self.stack.push((None, prefix, Some(cur.val.as_ref().unwrap()), idx));
-                                }
-                            }
-                            if (ch == '.' || ch < cur.c) && cur.lt.is_some() {
-                                self.stack.push((Some(&cur.lt), node.1.clone(), None, idx));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        None
-    }
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, Some(self.max_size))
-    }
+impl<'x, Value> Iterator for WildCardIter<'x, Value> {
+    type Item = (String, &'x Value);
+    fn next(&mut self) -> Option<(String, &'x Value)> { self.iter.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
 /// TSTMap consuming iterator
-pub struct IntoIter<V> {
-    stack: Vec<(Option<Box<Node<V>>>, String, Option<V>)>,
-    size: usize,
+pub struct IntoIter<Value> {
+    iter: IntoTraverse<Value>,
 }
 
-impl<V> IntoIter<V> {
-    fn new(tst: TSTMap<V>) -> IntoIter<V> {
+impl<Value> IntoIter<Value> {
+    fn new(mut tst: TSTMap<Value>) -> Self {
         let size = tst.len();
+        let root = mem::replace(&mut tst.root.ptr, None);
         IntoIter {
-            stack: vec![(tst.root, "".to_string(), None)],
-            size: size,
+            iter: IntoTraverse::new(root, size),
         }
     }
 }
 
-impl<V> Iterator for IntoIter<V> {
-    type Item = (String, V);
+impl<Value> Iterator for IntoIter<Value> {
+    type Item = (String, Value);
 
-    fn next(&mut self) -> Option<(String, V)> {
-        while !self.stack.is_empty() {
-            let mut node = self.stack.pop().unwrap();
-            match node.2 {
-                Some(value) => {
-                    self.size -= 1;
-                    return Some((node.1, value));
-                }
-                None => {
-                    match node.0 {
-                        None => {}
-                        Some(ref mut cur) => {
-                            let mut prefix = String::new();
-                            if cur.gt.is_some() {
-                                self.stack.push((mem::replace(&mut cur.gt, None), node.1.clone(), None));
-                            }
-                            if cur.eq.is_some() || cur.val.is_some() {
-                                prefix.push_str(&node.1);
-                                prefix.push(cur.c);
-                            }
-                            if cur.eq.is_some() {
-                                self.stack.push((mem::replace(&mut cur.eq, None), prefix.clone(), None));
-                            }
-                            if cur.val.is_some() {
-                                self.stack.push((None, prefix, mem::replace(&mut cur.val, None)));
-                            }
-                            if cur.lt.is_some() {
-                                self.stack.push((mem::replace(&mut cur.lt, None), node.1.clone(), None));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        None
+    fn next(&mut self) -> Option<(String, Value)> {
+        self.iter.next()
     }
-    fn size_hint(&self) -> (usize, Option<usize>) { (self.size, Some(self.size)) }
+    fn size_hint(&self) -> (usize, Option<usize>) { (self.iter.size, Some(self.iter.size)) }
 }
 
-impl<V> ExactSizeIterator for IntoIter<V> {
-    fn len(&self) -> usize { self.size }
+impl<Value> ExactSizeIterator for IntoIter<Value> {
+    fn len(&self) -> usize { self.iter.size }
 }
+
+//
+// Entry section
+//
 
 /// A view into a single occupied location in a TSTMap.
-pub struct OccupiedEntry<'a, V: 'a> {
-    node: &'a mut Box<Node<V>>,
-    cont_size: &'a mut usize,
+pub struct OccupiedEntry<'x, Value: 'x> {
+    node: &'x mut Node<Value>,
+    cont_size: &'x mut usize,
 }
 
 /// A view into a single empty location in a TSTMap.
-pub struct VacantEntry<'a, V: 'a> {
-    node: &'a mut Box<Node<V>>,
+pub struct VacantEntry<'x, Value: 'x> {
+    node: &'x mut Node<Value>,
+    cont_size: &'x mut usize,
 }
 
 /// A view into a single location in a TSTMap, which may be vacant or occupied.
-pub enum Entry<'a, V: 'a> {
+pub enum Entry<'x, Value: 'x> {
     /// A vacant Entry
-    Occupied(OccupiedEntry<'a, V>),
+    Occupied(OccupiedEntry<'x, Value>),
     /// An occupied Entry
-    Vacant(VacantEntry<'a, V>),
+    Vacant(VacantEntry<'x, Value>),
 }
 
-impl<'a, V> Entry<'a, V> {
-    fn new(node: &'a mut Box<Node<V>>, size: &'a mut usize) -> Entry<'a, V> {
-        match node.val {
-            None => Vacant(VacantEntry::new(node)),
+impl<'x, Value> Entry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Entry<'x, Value> {
+        match node.value {
+            None => Vacant(VacantEntry::new(node, size)),
             Some(_) => Occupied(OccupiedEntry::new(node, size)),
         }
     }
     /// Gets a mut reference to the value in the entry or Err in case for Vacant.
-    pub fn get(self) -> Result<&'a mut V, VacantEntry<'a, V>> {
+    pub fn get(self) -> Result<&'x mut Value, VacantEntry<'x, Value>> {
         match self {
             Occupied(entry) => Ok(entry.into_mut()),
             Vacant(entry) => Err(entry),
@@ -876,7 +689,7 @@ impl<'a, V> Entry<'a, V> {
     }
     /// Ensures a value is in the entry by inserting the default if empty, and returns
     /// a mutable reference to the value in the entry.
-    pub fn or_insert(self, default: V) -> &'a mut V {
+    pub fn or_insert(self, default: Value) -> &'x mut Value {
         match self {
             Occupied(entry) => entry.into_mut(),
             Vacant(entry) => entry.insert(default),
@@ -884,7 +697,7 @@ impl<'a, V> Entry<'a, V> {
     }
     /// Ensures a value is in the entry by inserting the result of the default function if empty,
     /// and returns a mutable reference to the value in the entry.
-    pub fn or_insert_with<F: FnOnce() -> V>(self, default: F) -> &'a mut V {
+    pub fn or_insert_with<F: FnOnce() -> Value>(self, default: F) -> &'x mut Value {
         match self {
             Occupied(entry) => entry.into_mut(),
             Vacant(entry) => entry.insert(default()),
@@ -892,43 +705,50 @@ impl<'a, V> Entry<'a, V> {
     }
 }
 
-impl<'a, V> OccupiedEntry<'a, V> {
-    fn new(node: &'a mut Box<Node<V>>, size: &'a mut usize) -> OccupiedEntry<'a, V> {
-        OccupiedEntry {node: node, cont_size: size}
+impl<'x, Value> OccupiedEntry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> OccupiedEntry<'x, Value> {
+        OccupiedEntry {
+            node: node,
+            cont_size: size,
+        }
     }
     /// Gets a reference to the value in the entry.
-    pub fn get(&self) -> &V {
-        self.node.val.as_ref().unwrap()
+    pub fn get(&self) -> &Value {
+        self.node.value.as_ref().unwrap()
     }
     /// Gets a mutable reference to the value in the entry.
-    pub fn get_mut(&mut self) -> &mut V {
-        self.node.val.as_mut().unwrap()
+    pub fn get_mut(&mut self) -> &mut Value {
+        self.node.value.as_mut().unwrap()
     }
     /// Converts the OccupiedEntry into a mutable reference to the value in the entry
     /// with a lifetime bound to the TSTMap itself
-    pub fn into_mut(self) -> &'a mut V {
-        self.node.val.as_mut().unwrap()
+    pub fn into_mut(self) -> &'x mut Value {
+        self.node.value.as_mut().unwrap()
     }
     /// Sets the value of the entry, and returns the entry's old value
-    pub fn insert(&mut self, value: V) -> V {
+    pub fn insert(&mut self, value: Value) -> Value {
         self.node.replace(Some(value)).unwrap()
     }
     /// Takes the value out of the entry, and returns it
-    pub fn remove(self) -> V {
+    pub fn remove(self) -> Value {
         *self.cont_size -= 1;
         self.node.replace(None).unwrap()
     }
 }
 
-impl<'a, V> VacantEntry<'a, V> {
-    fn new(node: &'a mut Box<Node<V>>) -> VacantEntry<'a, V> {
-        VacantEntry {node: node}
+impl<'x, Value> VacantEntry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> VacantEntry<'x, Value> {
+        VacantEntry {
+            node: node,
+            cont_size: size,
+        }
     }
     /// Sets the value of the entry with the VacantEntry's key,
     /// and returns a mutable reference to it
-    pub fn insert(self, value: V) -> &'a mut V {
-        self.node.val = Some(value);
-        self.node.val.as_mut().unwrap()
+    pub fn insert(self, value: Value) -> &'x mut Value {
+        self.node.value = Some(value);
+        *self.cont_size += 1;
+        self.node.value.as_mut().unwrap()
     }
 }
 
@@ -945,6 +765,6 @@ mod test {
         m.remove("BY");
         m.remove("BYE");
         m.remove("BYGONE");
-        assert_eq!(None, m.root);
+        assert_eq!(None, m.root.ptr);
     }
 }

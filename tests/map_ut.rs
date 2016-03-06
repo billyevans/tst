@@ -29,10 +29,54 @@ fn create_root() {
 }
 
 #[test]
+fn map_clone() {
+    let orig = tstmap! {
+        "first" => 1,
+        "second" => 2,
+        "firstthird" => 3,
+        "firstsecond" => 12,
+    };
+
+    let cpy = orig.clone();
+    assert_eq!(orig, cpy);
+}
+
+#[test]
+fn map_clone_strings_as_value() {
+    let orig = tstmap! {
+        "first" => "1",
+        "second" => "2",
+        "firstthird" => "3",
+        "firstsecond" => "12",
+    };
+
+    let cpy = orig.clone();
+    assert_eq!(orig, cpy);
+}
+
+#[test]
 fn insert() {
     let mut m = TSTMap::<i32>::new();
 
     assert_eq!(None, m.insert("abc", 13));
+    assert_eq!(1, m.len());
+}
+
+#[test]
+fn insert_string_as_value() {
+    let mut m = TSTMap::<String>::new();
+
+    assert_eq!(None, m.insert("abc", "xxxx".to_string()));
+    assert_eq!("xxxx", m["abc"]);
+    assert_eq!(1, m.len());
+}
+
+#[test]
+fn insert_vec_as_value() {
+    let mut m = TSTMap::<Vec<String>>::new();
+
+    assert_eq!(None, m.insert("abc", vec!["xxxx".to_owned(), "1234STRING".to_owned()]));
+    assert_eq!(vec!["xxxx".to_owned(), "1234STRING".to_owned()], m["abc"]);
     assert_eq!(1, m.len());
 }
 
@@ -49,6 +93,7 @@ fn get() {
     let mut m = TSTMap::new();
 
     m.insert("abc", 13);
+    assert_eq!(Some(&13), m.get("abc"));
     assert_eq!(Some(&13), m.get("abc"));
 }
 
@@ -133,15 +178,15 @@ fn entry_occupied_update() {
 fn entry_vacant() {
     let mut m = TSTMap::new();
 
-    m.insert("abcde", 13);
-    m.insert("abcdf", 14);
     match m.entry("abcdg") {
         Vacant(entry) => {
             assert_eq!(100, *entry.insert(100));
         },
         Occupied(_) => unreachable!(),
     }
+    println!("{:?}", m);
     assert_eq!(Some(&100), m.get("abcdg"));
+    assert_eq!(1, m.len());
 }
 
 #[test]
@@ -213,6 +258,7 @@ fn remove_from_empty() {
 
     assert_eq!(None, m.remove("xxx"));
     assert_eq!(None, m.remove(""));
+    assert_eq!(0, m.len());
 }
 
 #[test]
@@ -232,6 +278,7 @@ fn remove() {
     assert_eq!(None, m.get("abc"));
     assert_eq!(None, m.remove("abc"));
     assert_eq!(None, m.get("abc"));
+    assert_eq!(0, m.len());
 }
 
 #[test]
@@ -244,6 +291,17 @@ fn remove_rich() {
     assert_eq!(Some(8), m.remove("BYPRODUCT"));
     assert_eq!(Some(2), m.remove("BYE"));
     assert_eq!(8, m.len());
+}
+
+#[test]
+fn remove_only_tail() {
+    let mut m = prepare_data();
+
+    assert_eq!(Some(8), m.remove("BYPRODUCT"));
+
+    assert_eq!(1, m["BY"]);
+    assert_eq!(2, m["BYE"]);
+    assert_eq!(12, m.len());
 }
 
 #[test]
@@ -514,8 +572,6 @@ fn prefix_iterator_mut_empty() {
     assert_eq!(orig, m);
 }
 
-
-
 #[test]
 fn keys_iterator() {
     let mut m = TSTMap::new();
@@ -684,14 +740,30 @@ fn macros_ctor() {
 }
 
 #[test]
-#[should_panic]
-fn  overflow_stack() {
-    let mut m = TSTMap::<i32>::new();
+fn  insert_remove_get_big_key_not_overflow_stack() {
+    let mut m = TSTMap::new();
     let mut key = String::new();
 
     while key.len() < 1000000 {
         key.push_str("qwertyuiopasdfghjkl;");
     }
-    m.insert(&key, 1);
+    m.insert(&key, 666);
+
+    assert_eq!(1, m.len());
+    assert_eq!(Some(&666), m.get(&key));
+    assert_eq!(Some(666), m.remove(&key));
+    assert_eq!(None, m.get(&key));
+}
+
+#[test]
+fn  drop_stack_overflow() {
+    let mut m = TSTMap::new();
+    let mut key = String::new();
+
+    while key.len() < 1000000 {
+        key.push_str("qwertyuiopasdfghjkl;");
+    }
+    m.insert(&key, 666);
+
     assert_eq!(1, m.len());
 }

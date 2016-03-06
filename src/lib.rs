@@ -70,12 +70,14 @@ macro_rules! tstset {
     }};
 }
 
+extern crate core;
 
 pub use tst_map::TSTMap;
 pub use tst_set::TSTSet;
 
 /// TST container map and set implementation.
 mod node;
+mod traverse;
 mod map;
 mod set;
 

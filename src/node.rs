@@ -1,148 +1,219 @@
 use std::mem;
-use std::str::Chars;
 use std::fmt::{self, Debug};
+use std::default::Default;
+use std::ops::Deref;
+use core::marker::PhantomData;
+use core::ptr;
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Node<V> {
-    pub lt: Option<Box<Node<V>>>,
-    pub eq: Option<Box<Node<V>>>,
-    pub gt: Option<Box<Node<V>>>,
-    pub val: Option<V>,
-    pub c: char
+pub struct Node<Value> {
+    pub lt: BoxedNode<Value>,
+    pub eq: BoxedNode<Value>,
+    pub gt: BoxedNode<Value>,
+    pub value: Option<Value>,
+    pub c: char,
 }
 
-impl<V> Node<V> {
-    fn new(c: char) -> Node<V> {
-        Node {
-            lt: None,
-            eq: None,
-            gt: None,
-            val: None,
-            c: c
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BoxedNode<Value> {
+    pub ptr: Option<Box<Node<Value>>>,
+}
+
+pub struct NodeRef<MutType, Value> {
+    node: *const Node<Value>,
+    _marker: PhantomData<MutType>,
+}
+
+pub struct NodeRefMut<'x, Value: 'x> {
+    node: *mut BoxedNode<Value>,
+    _marker: PhantomData<&'x Value>,
+}
+
+impl<Value> Default for BoxedNode<Value> {
+    fn default() -> BoxedNode<Value> {
+        BoxedNode {
+            ptr: None,
+        }
+    }
+}
+
+impl<Value> BoxedNode<Value> {
+    pub fn new(ch: char) -> BoxedNode<Value> {
+        BoxedNode {
+            ptr: Some(Box::new(Node::new(ch))),
         }
     }
 
-    pub fn insert_node<'a>(node: &'a mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> &'a mut Box<Node<V>> {
-        match op_ch {
+    fn as_ptr(&self) -> *const Node<Value> {
+        match self.ptr {
+            Some(ref ptr) => {
+                &**ptr as *const Node<Value>
+            },
+            None => {
+                ptr::null()
+            }
+        }
+    }
+
+    fn as_ptr_mut(&self) -> *const Node<Value> {
+        match self.ptr {
+            Some(ref ptr) => {
+                &**ptr as *const Node<Value>
+            },
+            None => {
+                ptr::null()
+            }
+        }
+    }
+    fn as_node_ref_mut<'x>(&'x mut self) -> &'x mut Node<Value> {
+        match self.ptr {
             None => unreachable!(),
-            Some(ch) => {
-                match *node {
-                    None => {
-                        *node = Some(Box::new(Node::new(ch)));
-                        Node::insert_node(node, op_ch, iter)
-                    }
-                    Some(ref mut cur) => {
-                        if ch < cur.c {
-                            Node::insert_node(&mut cur.lt, op_ch, iter)
-                        }
-                        else if ch > cur.c {
-                            Node::insert_node(&mut cur.gt, op_ch, iter)
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            Node::insert_node(&mut cur.eq, iter.next(), iter)
-                        }
-                        else {
-                            cur
-                        }
-                    }
-                }
-            }
+            Some(ref mut ptr) => ptr,
         }
     }
 
-    pub fn get<'a>(node: &'a Option<Box<Node<V>>>, key: &str) ->
-            Option<&'a Option<Box<Node<V>>>>
-    {
-        let mut iter = key.chars();
-        let mut cur_node = node;
-
-        while let Some(ch) = iter.next() {
-            let mut go_next = false;
-            while go_next == false {
-                cur_node = match *cur_node {
-                    None => { return None; }
-                    Some(ref cur) => {
-                        if ch < cur.c {
-                            &cur.lt
-                        }
-                        else if ch > cur.c {
-                            &cur.gt
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            go_next = true;
-                            &cur.eq
-                        }
-                        else {
-                            return Some(cur_node);
-                        }
-                    }
-                }
-            }
+    pub fn as_ref<'x>(&self) -> NodeRef<marker::Immut<'x>, Value> {
+        NodeRef {
+            node: self.as_ptr(),
+            _marker: PhantomData,
         }
-        None
     }
 
-    pub fn get_mut<'a>(node: &'a mut Option<Box<Node<V>>>, key: &str) ->
-            Option<&'a mut Option<Box<Node<V>>>>
-    {
-        unsafe { mem::transmute(Node::get(node, key)) }
+    pub fn as_ref_mut<'x>(&mut self) -> NodeRef<marker::Mut<'x>, Value> {
+        NodeRef {
+            node: self.as_ptr_mut(),
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn as_mut<'x>(&'x mut self) -> NodeRefMut<'x, Value> {
+        NodeRefMut {
+            node: self as *mut BoxedNode<Value>,
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn is_some(&self) -> bool {
+        self.ptr.is_some()
+    }
+
+    pub fn take(&mut self) -> Option<Box<Node<Value>>> {
+        self.ptr.take()
+    }
+}
+
+impl<MutType, Value> NodeRef<MutType, Value> {
+    // we have to be shure about valid ptr, before calling
+    pub fn is_value(&self) -> bool {
+        unsafe {
+            let r = &*self.node;
+            r.value.is_some()
+        }
+    }
+}
+
+impl<'x, Value> NodeRef<marker::Immut<'x>, Value> {
+    pub fn as_option(&self) -> Option<&'x Node<Value>> {
+        if self.node.is_null() {
+            None
+        } else {
+            unsafe {
+                Some(&*self.node)
+            }
+        }
+    }
+}
+
+impl<'x, Value> Deref for NodeRef<marker::Immut<'x>, Value> {
+    type Target = Node<Value>;
+
+    fn deref(&self) -> &Node<Value> {
+        unsafe {
+            &*self.node
+        }
+    }
+}
+
+impl<'x, Value> NodeRef<marker::Mut<'x>, Value> {
+    pub fn as_immut(self) -> NodeRef<marker::Immut<'x>, Value> {
+        NodeRef {
+            node: self.node,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<MutType, Value> Clone for NodeRef<MutType, Value> {
+    fn clone(&self) -> Self {
+        NodeRef {
+            node: self.node,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'x, Value> NodeRefMut<'x, Value> {
+    pub fn as_node_ref(&self) -> &'x mut Node<Value> {
+        unsafe {
+            let mut r: &mut BoxedNode<Value> = &mut *self.node;
+            r.as_node_ref_mut()
+        }
+    }
+
+    pub fn as_mut(&self) -> &'x mut BoxedNode<Value> {
+        unsafe {
+            &mut *self.node
+        }
+    }
+
+    pub fn assign(&mut self, node: BoxedNode<Value>) {
+        unsafe {
+            *self.node = node;
+        }
+    }
+}
+
+impl<'x, Value> Clone for NodeRefMut<'x, Value> {
+    fn clone(&self) -> Self {
+        NodeRefMut {
+            node: self.node,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<Value> Node<Value> {
+    fn new(c: char) -> Node<Value> {
+        Node {
+            lt: Default::default(),
+            eq: Default::default(),
+            gt: Default::default(),
+            value: None,
+            c: c,
+        }
     }
 
     pub fn is_leaf(&self) -> bool {
-        self.lt.is_none() && self.gt.is_none() && self.eq.is_none() && self.val.is_none()
+        self.lt.ptr.is_none() && self.gt.ptr.is_none() && self.eq.ptr.is_none() && self.value.is_none()
     }
 
-    pub fn remove(node: &mut Option<Box<Node<V>>>, op_ch: Option<char>, mut iter: Chars) -> Option<V> {
-        match op_ch {
-            None => None,
-            Some(ch) => {
-                match *node {
-                    None => None,
-                    Some(ref mut cur) => {
-                        if ch < cur.c {
-                            let ret = Node::remove(&mut cur.lt, op_ch, iter);
-                            if ret.is_some() && cur.lt.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.lt, None);
-                            }
-                            ret
-                        }
-                        else if ch > cur.c {
-                            let ret = Node::remove(&mut cur.gt, op_ch, iter);
-                            if ret.is_some() && cur.gt.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.gt, None);
-                            }
-                            ret
-                        }
-                        else if iter.size_hint().0 > 0 {
-                            let ret = Node::remove(&mut cur.eq, iter.next(), iter);
-                            if ret.is_some() && cur.eq.as_ref().unwrap().is_leaf() {
-                                mem::replace(&mut cur.eq, None);
-                            }
-                            ret
-                        }
-                        else {
-                            match cur.val {
-                                None => None,
-                                Some(_) => mem::replace(&mut cur.val, None)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    pub fn replace(&mut self, value: Option<Value>) -> Option<Value> {
+        mem::replace(&mut self.value, value)
     }
-
-    pub fn replace(&mut self, val: Option<V>) -> Option<V> {
-        mem::replace(&mut self.val, val)
-    }
-
 }
 
-impl<V: Debug> Debug for Node<V> {
+impl<Value: Debug> Debug for Node<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{{\n"));
         try!(write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
-            self.lt, self.eq, self.gt, self.val, self.c));
+            self.lt, self.eq, self.gt, self.value, self.c));
         (write!(f, "}}\n"))
     }
+}
+
+pub mod marker {
+    use core::marker::PhantomData;
+
+    pub struct Immut<'x>(PhantomData<&'x ()>);
+    pub struct Mut<'x>(PhantomData<&'x mut ()>);
 }
