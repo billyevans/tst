@@ -13,6 +13,3 @@ It has special methods:
 - wildcard_iter - get iterator by wildcard
 - prefix_iter/prefix_iter_mut - get iterator by prefix
 - longest_prefix - get longest prefix
-
-TODO:
-- make non-reccursive
