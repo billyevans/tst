@@ -46,20 +46,20 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-492' class='srclink' href='../../src/tst/map.rs.html#845-848' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct OccupiedEntry&lt;'a, V: 'a&gt; {
+        </span><a id='src-781' class='srclink' href='../../src/tst/map.rs.html#657-660' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct OccupiedEntry&lt;'x, Value: 'x&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A view into a single occupied location in a TSTMap.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, V&gt; <a class='struct' href='../../tst/tst_map/struct.OccupiedEntry.html' title='tst::tst_map::OccupiedEntry'>OccupiedEntry</a>&lt;'a, V&gt;</code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self) -&gt; &amp;V</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'x, Value&gt; <a class='struct' href='../../tst/tst_map/struct.OccupiedEntry.html' title='tst::tst_map::OccupiedEntry'>OccupiedEntry</a>&lt;'x, Value&gt;</code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self) -&gt; &amp;Value</code></h4>
 <div class='docblock'><p>Gets a reference to the value in the entry.</p>
-</div><h4 id='method.get_mut' class='method'><code>fn <a href='#method.get_mut' class='fnname'>get_mut</a>(&amp;mut self) -&gt; &amp;mut V</code></h4>
+</div><h4 id='method.get_mut' class='method'><code>fn <a href='#method.get_mut' class='fnname'>get_mut</a>(&amp;mut self) -&gt; &amp;mut Value</code></h4>
 <div class='docblock'><p>Gets a mutable reference to the value in the entry.</p>
-</div><h4 id='method.into_mut' class='method'><code>fn <a href='#method.into_mut' class='fnname'>into_mut</a>(self) -&gt; &amp;'a mut V</code></h4>
+</div><h4 id='method.into_mut' class='method'><code>fn <a href='#method.into_mut' class='fnname'>into_mut</a>(self) -&gt; &amp;'x mut Value</code></h4>
 <div class='docblock'><p>Converts the OccupiedEntry into a mutable reference to the value in the entry
 with a lifetime bound to the TSTMap itself</p>
-</div><h4 id='method.insert' class='method'><code>fn <a href='#method.insert' class='fnname'>insert</a>(&amp;mut self, value: V) -&gt; V</code></h4>
+</div><h4 id='method.insert' class='method'><code>fn <a href='#method.insert' class='fnname'>insert</a>(&amp;mut self, value: Value) -&gt; Value</code></h4>
 <div class='docblock'><p>Sets the value of the entry, and returns the entry&#39;s old value</p>
-</div><h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(self) -&gt; V</code></h4>
+</div><h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(self) -&gt; Value</code></h4>
 <div class='docblock'><p>Takes the value out of the entry, and returns it</p>
 </div></div></section>
     <section id='search' class="content hidden"></section>
