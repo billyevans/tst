@@ -45,6 +45,15 @@ fn get_same(b: &mut Bencher) {
 }
 
 #[bench]
+fn remove_same(b: &mut Bencher) {
+    let mut m = prepare();
+
+    b.iter(|| {
+        m.remove("abcabcabca");
+    });
+}
+
+#[bench]
 fn get_none(b: &mut Bencher) {
     let mut m = prepare();
     b.iter(|| {

@@ -19,12 +19,17 @@ pub struct BoxedNode<Value> {
     pub ptr: Option<Box<Node<Value>>>,
 }
 
-pub struct NodeRef<MutType, Value> {
+pub struct NodeRef<'x, Value: 'x> {
     node: *const Node<Value>,
-    _marker: PhantomData<MutType>,
+    _marker: PhantomData<&'x Value>,
 }
 
 pub struct NodeRefMut<'x, Value: 'x> {
+    node: *mut Node<Value>,
+    _marker: PhantomData<&'x Value>,
+}
+
+pub struct BoxedNodeRefMut<'x, Value: 'x> {
     node: *mut BoxedNode<Value>,
     _marker: PhantomData<&'x Value>,
 }
@@ -55,16 +60,17 @@ impl<Value> BoxedNode<Value> {
         }
     }
 
-    fn as_ptr_mut(&self) -> *const Node<Value> {
+    fn as_ptr_mut(&mut self) -> *mut Node<Value> {
         match self.ptr {
-            Some(ref ptr) => {
-                &**ptr as *const Node<Value>
+            Some(ref mut ptr) => {
+                &mut **ptr as *mut Node<Value>
             },
             None => {
-                ptr::null()
+                ptr::null_mut()
             }
         }
     }
+
     fn as_node_ref_mut<'x>(&'x mut self) -> &'x mut Node<Value> {
         match self.ptr {
             None => unreachable!(),
@@ -72,22 +78,22 @@ impl<Value> BoxedNode<Value> {
         }
     }
 
-    pub fn as_ref<'x>(&self) -> NodeRef<marker::Immut<'x>, Value> {
+    pub fn as_ref<'x>(&self) -> NodeRef<'x, Value> {
         NodeRef {
             node: self.as_ptr(),
             _marker: PhantomData,
         }
     }
 
-    pub fn as_ref_mut<'x>(&mut self) -> NodeRef<marker::Mut<'x>, Value> {
-        NodeRef {
+    pub fn as_ref_mut<'x>(&mut self) -> NodeRefMut<'x, Value> {
+        NodeRefMut {
             node: self.as_ptr_mut(),
             _marker: PhantomData,
         }
     }
 
-    pub fn as_mut<'x>(&'x mut self) -> NodeRefMut<'x, Value> {
-        NodeRefMut {
+    pub fn as_mut<'x>(&'x mut self) -> BoxedNodeRefMut<'x, Value> {
+        BoxedNodeRefMut {
             node: self as *mut BoxedNode<Value>,
             _marker: PhantomData,
         }
@@ -102,7 +108,7 @@ impl<Value> BoxedNode<Value> {
     }
 }
 
-impl<MutType, Value> NodeRef<MutType, Value> {
+impl<'a, Value> NodeRef<'a, Value> {
     // we have to be shure about valid ptr, before calling
     pub fn is_value(&self) -> bool {
         unsafe {
@@ -112,7 +118,7 @@ impl<MutType, Value> NodeRef<MutType, Value> {
     }
 }
 
-impl<'x, Value> NodeRef<marker::Immut<'x>, Value> {
+impl<'x, Value> NodeRef<'x, Value> {
     pub fn as_option(&self) -> Option<&'x Node<Value>> {
         if self.node.is_null() {
             None
@@ -124,7 +130,7 @@ impl<'x, Value> NodeRef<marker::Immut<'x>, Value> {
     }
 }
 
-impl<'x, Value> Deref for NodeRef<marker::Immut<'x>, Value> {
+impl<'x, Value> Deref for NodeRef<'x, Value> {
     type Target = Node<Value>;
 
     fn deref(&self) -> &Node<Value> {
@@ -134,16 +140,16 @@ impl<'x, Value> Deref for NodeRef<marker::Immut<'x>, Value> {
     }
 }
 
-impl<'x, Value> NodeRef<marker::Mut<'x>, Value> {
-    pub fn as_immut(self) -> NodeRef<marker::Immut<'x>, Value> {
+impl<'x, Value> Default for NodeRef<'x, Value> {
+    fn default() -> Self {
         NodeRef {
-            node: self.node,
+            node: ptr::null(),
             _marker: PhantomData,
         }
     }
 }
 
-impl<MutType, Value> Clone for NodeRef<MutType, Value> {
+impl<'x, Value> Clone for NodeRef<'x, Value> {
     fn clone(&self) -> Self {
         NodeRef {
             node: self.node,
@@ -153,6 +159,33 @@ impl<MutType, Value> Clone for NodeRef<MutType, Value> {
 }
 
 impl<'x, Value> NodeRefMut<'x, Value> {
+    pub fn as_immut(self) -> NodeRef<'x, Value> {
+        NodeRef {
+            node: self.node,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'a, Value> Default for NodeRefMut<'a, Value> {
+    fn default() -> Self {
+        NodeRefMut {
+            node: ptr::null_mut(),
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'x, Value> Clone for NodeRefMut<'x, Value> {
+    fn clone(&self) -> Self {
+        NodeRefMut {
+            node: self.node,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'x, Value> BoxedNodeRefMut<'x, Value> {
     pub fn as_node_ref(&self) -> &'x mut Node<Value> {
         unsafe {
             let mut r: &mut BoxedNode<Value> = &mut *self.node;
@@ -173,9 +206,18 @@ impl<'x, Value> NodeRefMut<'x, Value> {
     }
 }
 
-impl<'x, Value> Clone for NodeRefMut<'x, Value> {
+impl<'x, Value> Default for BoxedNodeRefMut<'x, Value> {
+    fn default() -> Self {
+        BoxedNodeRefMut {
+            node: ptr::null_mut(),
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'x, Value> Clone for BoxedNodeRefMut<'x, Value> {
     fn clone(&self) -> Self {
-        NodeRefMut {
+        BoxedNodeRefMut {
             node: self.node,
             _marker: PhantomData,
         }
@@ -209,11 +251,4 @@ impl<Value: Debug> Debug for Node<Value> {
             self.lt, self.eq, self.gt, self.value, self.c));
         (write!(f, "}}\n"))
     }
-}
-
-pub mod marker {
-    use core::marker::PhantomData;
-
-    pub struct Immut<'x>(PhantomData<&'x ()>);
-    pub struct Mut<'x>(PhantomData<&'x mut ()>);
 }

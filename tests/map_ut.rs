@@ -663,6 +663,19 @@ fn wild_card_iterator_empty() {
 }
 
 #[test]
+fn wild_card_iterator_mut() {
+    let mut m = prepare_data();
+
+    for (_, v) in m.wildcard_iter_mut("BYPA..") {
+        *v = -13;
+    }
+    assert_eq!(-13, m["BYPASS"]);
+    assert_eq!(-13, m["BYPATH"]);
+    assert_eq!(8, m["BYPRODUCT"]);
+    assert_eq!(5, m["BYLINE"]);
+}
+
+#[test]
 fn eq_empty() {
     let m1 = TSTMap::<i32>::new();
     let m2 = TSTMap::<i32>::new();

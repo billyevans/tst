@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::mem;
 
-use super::node::{Node, NodeRef, NodeRefMut, BoxedNode, marker};
+use super::node::{Node, NodeRef, NodeRefMut, BoxedNodeRefMut, BoxedNode};
 
 enum CompareResult<Handle> {
     GoLeftOrRight(Handle),
@@ -44,13 +44,13 @@ enum TraverseEntry<NodeRef, ValueRef> {
 
 #[derive(Clone)]
 pub struct Traverse<'x, Value: 'x> {
-    stack: Trace<TraverseEntry<(String, NodeRef<marker::Immut<'x>, Value>), (String, &'x Value)>>,
+    stack: Trace<TraverseEntry<(String, NodeRef<'x, Value>), (String, &'x Value)>>,
     min_size: usize,
     max_size: usize,
 }
 
 impl<'x, Value> Traverse<'x, Value> {
-    pub fn new(node: NodeRef<marker::Immut<'x>, Value>, min: usize, max: usize) -> Self {
+    pub fn new(node: NodeRef<'x, Value>, min: usize, max: usize) -> Self {
         Traverse {
             stack: Trace {
                 stack: vec![TraverseEntry::Node(("".to_string(), node))],
@@ -231,15 +231,71 @@ impl<Value> DropTraverse<Value> {
 }
 
 #[derive(Clone)]
+pub struct ValuesTraverse<'x, Value: 'x> {
+    stack: Trace<TraverseEntry<NodeRef<'x, Value>, &'x Value>>,
+    min_size: usize,
+    max_size: usize,
+}
+
+impl<'x, Value> ValuesTraverse<'x, Value> {
+    pub fn new(node: NodeRef<'x, Value>, min: usize, max: usize) -> Self {
+        ValuesTraverse {
+            stack: Trace {
+                stack: vec![TraverseEntry::Node(node)],
+            },
+            min_size: min,
+            max_size: max,
+        }
+    }
+
+    pub fn next(&mut self) -> Option<&'x Value> {
+        while let Some(entry) = self.stack.pop() {
+            match entry {
+                TraverseEntry::Value(value) => {
+                    if self.min_size == self.max_size {
+                        self.min_size -= 1;
+                    }
+                    self.max_size -= 1;
+                    return Some(value);
+                }
+                TraverseEntry::Node(node) => {
+                    match node.as_option() {
+                        None => {}
+                        Some(ref cur) => {
+                            if cur.gt.is_some() {
+                                self.stack.push(TraverseEntry::Node(cur.gt.as_ref()));
+                            }
+                            if cur.eq.is_some() {
+                                self.stack.push(TraverseEntry::Node(cur.eq.as_ref()));
+                            }
+                            if cur.value.is_some() {
+                                self.stack.push(TraverseEntry::Value(cur.value.as_ref().unwrap()));
+                            }
+                            if cur.lt.is_some() {
+                                self.stack.push(TraverseEntry::Node(cur.lt.as_ref()));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    pub fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.min_size, Some(self.max_size))
+    }
+}
+
+#[derive(Clone)]
 pub struct WildCardTraverse<'x, Value: 'x> {
-    stack: Trace<TraverseEntry<(String, NodeRef<marker::Immut<'x>, Value>, usize), (String, &'x Value)>>,
-    //stack: Vec<(Option<&'x Option<Box<Node<Value>>>>, String, Option<&'x Value>, usize)>,
+    stack: Trace<TraverseEntry<(String, NodeRef<'x, Value>, usize), (String, &'x Value)>>,
     max_size: usize,
     pat: Vec<char>,
 }
 
 impl<'x, Value> WildCardTraverse<'x, Value> {
-    pub fn new(node: NodeRef<marker::Immut<'x>, Value>, pat: &str, max: usize) -> Self {
+    pub fn new(node: NodeRef<'x, Value>, pat: &str, max: usize) -> Self {
         WildCardTraverse {
             stack: Trace{
                 stack: vec![TraverseEntry::Node(("".to_string(), node, 0))],
@@ -294,7 +350,7 @@ impl<'x, Value> WildCardTraverse<'x, Value> {
     }
 }
 
-fn lookup_next<'x, Value>(node: &NodeRef<marker::Immut<'x>, Value>, ch: char) -> CompareResult<NodeRef<marker::Immut<'x>, Value>> {
+fn lookup_next<'x, Value>(node: &NodeRef<'x, Value>, ch: char) -> CompareResult<NodeRef<'x, Value>> {
     match node.as_option() {
         None => CompareResult::NotFound,
         Some(ref cur) => {
@@ -307,7 +363,7 @@ fn lookup_next<'x, Value>(node: &NodeRef<marker::Immut<'x>, Value>, ch: char) ->
     }
 }
 
-fn lookup_next_mut<'x, Value>(node: &NodeRefMut<'x, Value>, ch: char) -> CompareResult<NodeRefMut<'x, Value>> {
+fn lookup_next_mut<'x, Value>(node: &BoxedNodeRefMut<'x, Value>, ch: char) -> CompareResult<BoxedNodeRefMut<'x, Value>> {
     match node.as_mut().ptr {
         None => CompareResult::NotFound,
         Some(ref mut cur) => {
@@ -320,24 +376,20 @@ fn lookup_next_mut<'x, Value>(node: &NodeRefMut<'x, Value>, ch: char) -> Compare
     }
 }
 
-pub fn search<'x, Value>(mut node: NodeRef<marker::Immut<'x>, Value>, key: &str) ->
+pub fn search<'x, Value>(mut node: NodeRef<'x, Value>, key: &str) ->
         Option<&'x Node<Value>>
 {
-    let mut iter = key.chars();
+    let mut last = Default::default();
 
-    while let Some(ch) = iter.next() {
+    for ch in key.chars() {
         let mut go_next = false;
         while go_next == false {
             node = match lookup_next(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
-                    if iter.size_hint().0 > 0 {
-                        go_next = true;
-                        next
-                    }
-                    else {
-                        return node.as_option();
-                    }
+                    go_next = true;
+                    last = node;
+                    next
                 },
                 CompareResult::NotFound => {
                     return None;
@@ -345,26 +397,21 @@ pub fn search<'x, Value>(mut node: NodeRef<marker::Immut<'x>, Value>, key: &str)
             }
         }
     }
-    None
+    last.as_option()
 }
 
-pub fn insert<'x, Value>(mut node: NodeRefMut<'x, Value>, key: &str) -> &'x mut Node<Value> {
-    let mut iter = key.chars();
+pub fn insert<'x, Value>(mut node: BoxedNodeRefMut<'x, Value>, key: &str) -> &'x mut Node<Value> {
+    let mut last = Default::default();
 
-    while let Some(ch) = iter.next() {
+    for ch in key.chars() {
         let mut go_next = false;
         while go_next == false {
-            // unsafe { println!("{}", ch); }
             node = match lookup_next_mut(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
-                    if iter.size_hint().0 > 0 {
-                        go_next = true;
-                        next
-                    }
-                    else {
-                        return node.as_node_ref();
-                    }
+                    go_next = true;
+                    last = node;
+                    next
                 },
                 CompareResult::NotFound => {
                     node.assign(BoxedNode::new(ch));
@@ -373,17 +420,16 @@ pub fn insert<'x, Value>(mut node: NodeRefMut<'x, Value>, key: &str) -> &'x mut 
             }
         }
     }
-    unreachable!()
+    last.as_node_ref()
 }
 
-pub fn search_mut<'x, Value>(node: NodeRef<marker::Mut<'x>, Value>, key: &str) ->
+pub fn search_mut<'x, Value>(node: NodeRefMut<'x, Value>, key: &str) ->
         Option<&'x mut Node<Value>>
 {
     unsafe { mem::transmute(search(node.as_immut(), key)) }
-    // unsafe { mem::transmute(Node::get(node, key)) }
 }
 
-pub fn longest_prefix<'x, Value>(mut node: NodeRef<marker::Immut<'x>, Value>, pref: &'x str) -> &'x str {
+pub fn longest_prefix<'x, Value>(mut node: NodeRef<'x, Value>, pref: &'x str) -> &'x str {
     let mut length: usize = 0;
     let mut i: usize = 0;
     for ch in pref.chars() {
@@ -406,27 +452,20 @@ pub fn longest_prefix<'x, Value>(mut node: NodeRef<marker::Immut<'x>, Value>, pr
     return &pref[..length];
 }
 
-pub fn remove<'x, Value>(mut node: NodeRefMut<Value>, key: &str) -> Option<Value> {
-    let mut ret = None;
-    let mut stack = Trace::<NodeRefMut<Value>>::new(key.len());
-    let mut iter = key.chars();
+pub fn remove<'x, Value>(mut node: BoxedNodeRefMut<Value>, key: &str) -> Option<Value> {
+    let mut stack = Trace::<BoxedNodeRefMut<Value>>::new(key.len());
+    let mut ptr = None;
 
-    while let Some(ch) = iter.next() {
+    for ch in key.chars() {
         let mut go_next = false;
         while go_next == false {
             stack.push(node.clone());
             node = match lookup_next_mut(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
-                    if iter.size_hint().0 > 0 {
-                        go_next = true;
-                        next
-                    }
-                    else {
-                        let ptr = node.as_node_ref();
-                        ret = ptr.value.take();
-                        break;
-                    }
+                    go_next = true;
+                    ptr = Some(node.as_node_ref());
+                    next
                 },
                 CompareResult::NotFound => {
                     return None;
@@ -435,6 +474,10 @@ pub fn remove<'x, Value>(mut node: NodeRefMut<Value>, key: &str) -> Option<Value
 
         }
     }
+    let ret = match ptr {
+        None => None,
+        Some(ptr) => ptr.value.take(),
+    };
     // cut the tail
     if ret.is_some() {
         while let Some(mut node_to_drop) = stack.pop() {

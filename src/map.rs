@@ -4,8 +4,8 @@ use std::fmt::{self, Debug};
 use std::default::Default;
 use self::Entry::*;
 use std::iter::{Map, FromIterator};
-use super::node::{Node, NodeRef, marker, BoxedNode};
-use super::traverse::{self, Traverse, IntoTraverse, WildCardTraverse, DropTraverse};
+use super::node::{Node, NodeRef, NodeRefMut, BoxedNode};
+use super::traverse::{self, Traverse, ValuesTraverse, IntoTraverse, WildCardTraverse, DropTraverse};
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
@@ -59,7 +59,7 @@ impl<Value> TSTMap<Value> {
     /// use tst::TSTMap;
     /// let mut t: TSTMap<i64> = TSTMap::new();
     /// ```
-    pub fn new() -> TSTMap<Value> {
+    pub fn new() -> Self {
         TSTMap {
             root: Default::default(),
             size: 0,
@@ -273,25 +273,27 @@ impl<Value> TSTMap<Value> {
         WildCardIter::new(self.root.as_ref(), pat, self.len())
     }
 
-    /// Method returns longest prefix in the TSTMap
+    /// An mutable iterator returning all nodes matching wildcard pattern.
     ///
     /// # Examples
     ///
     /// ```
     /// use tst::TSTMap;
-    /// let mut m = TSTMap::new();
-    /// m.insert("abc", 1);
-    /// m.insert("abcd", 1);
-    /// m.insert("abce", 1);
-    /// m.insert("abca", 1);
-    /// m.insert("zxd", 1);
-    /// m.insert("add", 1);
-    /// m.insert("abcdef", 1);
     ///
-    /// assert_eq!("abcd", m.longest_prefix("abcde"));
+    /// let mut m = TSTMap::new();
+    /// m.insert("a", 1);
+    /// m.insert("b", 2);
+    /// m.insert("c", 3);
+    ///
+    /// for (k, v) in m.wildcard_iter_mut(".") {
+    ///     *v += 10;
+    /// }
+    /// assert_eq!(11, m["a"]);
+    /// assert_eq!(12, m["b"]);
+    /// assert_eq!(13, m["c"]);
     /// ```
-    pub fn longest_prefix<'x>(&self, pref: &'x str) -> &'x str {
-        traverse::longest_prefix(self.root.as_ref(), pref)
+    pub fn wildcard_iter_mut(&mut self, pat: &str) -> WildCardIterMut<Value> {
+        WildCardIterMut::new(self.root.as_ref_mut(), pat, self.len())
     }
 
     /// Method returns iterator over all values with common prefix in the TSTMap
@@ -317,7 +319,7 @@ impl<Value> TSTMap<Value> {
     /// ```
     pub fn prefix_iter(&self, pref: &str) -> Iter<Value> {
         let node = traverse::search(self.root.as_ref(), pref);
-        Iter::<Value>::with_prefix(node, pref, self.len())
+        Iter::with_prefix(node, pref, self.len())
     }
 
     /// Method returns mutable iterator over all values with common prefix in the TSTMap
@@ -343,7 +345,7 @@ impl<Value> TSTMap<Value> {
     pub fn prefix_iter_mut(&mut self, pref: &str) -> IterMut<Value> {
         let len = self.len();
         let node = traverse::search(self.root.as_ref(), pref);
-        IterMut::<Value>::with_prefix(node, pref, len)
+        IterMut::with_prefix(node, pref, len)
     }
 
     /// Gets an iterator over the entries of the TSTMap.
@@ -367,7 +369,7 @@ impl<Value> TSTMap<Value> {
     /// ```
     pub fn iter(&self) -> Iter<Value> {
         let len = self.len();
-        Iter::<Value>::new(self.root.as_ref(), len, len)
+        Iter::new(self.root.as_ref(), len, len)
     }
 
     /// Gets a mutable iterator over the entries of the TSTMap.
@@ -392,7 +394,7 @@ impl<Value> TSTMap<Value> {
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<Value> {
         let len = self.len();
-        IterMut::<Value>::new(self.root.as_ref_mut(), len, len)
+        IterMut::new(self.root.as_ref_mut(), len, len)
     }
 
     /// An iterator visiting all keys in arbitrary order.
@@ -435,8 +437,30 @@ impl<Value> TSTMap<Value> {
     /// }
     /// ```
     pub fn values(&self) -> ValuesIter<Value> {
-        fn second<A, B>((_, v): (A, B)) -> B { v }
-        ValuesIter { iter: self.iter().map(second) }
+        ValuesIter { iter: ValuesTraverse::new(self.root.as_ref(), self.len(), self.len()) }
+    }
+}
+
+impl<'x, Value: 'x> TSTMap<Value> {
+    /// Method returns longest prefix in the TSTMap
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::TSTMap;
+    /// let mut m = TSTMap::new();
+    /// m.insert("abc", 1);
+    /// m.insert("abcd", 1);
+    /// m.insert("abce", 1);
+    /// m.insert("abca", 1);
+    /// m.insert("zxd", 1);
+    /// m.insert("add", 1);
+    /// m.insert("abcdef", 1);
+    ///
+    /// assert_eq!("abcd", m.longest_prefix("abcde"));
+    /// ```
+    pub fn longest_prefix(&self, pref: &'x str) -> &'x str {
+        traverse::longest_prefix(self.root.as_ref(), pref)
     }
 }
 
@@ -528,7 +552,7 @@ pub struct Iter<'x, Value: 'x> {
 }
 
 impl<'x, Value> Iter<'x, Value> {
-    fn new(node: NodeRef<marker::Immut<'x>, Value>, min: usize, max: usize) -> Self {
+    fn new(node: NodeRef<'x, Value>, min: usize, max: usize) -> Self {
         Iter {
             iter: Traverse::new(node, min, max),
         }
@@ -557,7 +581,7 @@ pub struct IterMut<'x, Value: 'x> {
 }
 
 impl<'x, Value> IterMut<'x, Value> {
-    fn new(node: NodeRef<marker::Mut<'x>, Value>, min: usize, max: usize) -> Self {
+    fn new(node: NodeRefMut<'x, Value>, min: usize, max: usize) -> Self {
         IterMut {
             iter: Traverse::new(node.as_immut(), min, max),
         }
@@ -591,8 +615,9 @@ impl<'x, Value:'x> Iterator for KeysIter<'x, Value> {
 }
 
 /// TSTMap values iterator
+#[derive(Clone)]
 pub struct ValuesIter<'x, Value:'x> {
-    iter: Map<Iter<'x, Value>, fn((String, &'x Value)) -> &'x Value>,
+    iter: ValuesTraverse<'x, Value>,
 }
 
 impl<'x, Value:'x> Iterator for ValuesIter<'x, Value> {
@@ -608,7 +633,7 @@ pub struct WildCardIter<'x, Value: 'x> {
 }
 
 impl<'x, Value> WildCardIter<'x, Value> {
-    fn new(node: NodeRef<marker::Immut<'x>, Value>, pat: &str, max: usize) -> Self {
+    fn new(node: NodeRef<'x, Value>, pat: &str, max: usize) -> Self {
         WildCardIter {
             iter: WildCardTraverse::new(node, pat, max),
         }
@@ -618,6 +643,26 @@ impl<'x, Value> WildCardIter<'x, Value> {
 impl<'x, Value> Iterator for WildCardIter<'x, Value> {
     type Item = (String, &'x Value);
     fn next(&mut self) -> Option<(String, &'x Value)> { self.iter.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+/// TSTMap wild-card mutable iterator.
+#[derive(Clone)]
+pub struct WildCardIterMut<'x, Value: 'x> {
+    iter: WildCardTraverse<'x, Value>,
+}
+
+impl<'x, Value> WildCardIterMut<'x, Value> {
+    fn new(node: NodeRefMut<'x, Value>, pat: &str, max: usize) -> Self {
+        WildCardIterMut {
+            iter: WildCardTraverse::new(node.as_immut(), pat, max),
+        }
+    }
+}
+
+impl<'x, Value> Iterator for WildCardIterMut<'x, Value> {
+    type Item = (String, &'x mut Value);
+    fn next(&mut self) -> Option<(String, &'x mut Value)> { unsafe { mem::transmute(self.iter.next()) } }
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
@@ -674,7 +719,7 @@ pub enum Entry<'x, Value: 'x> {
 }
 
 impl<'x, Value> Entry<'x, Value> {
-    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Entry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Self {
         match node.value {
             None => Vacant(VacantEntry::new(node, size)),
             Some(_) => Occupied(OccupiedEntry::new(node, size)),
@@ -706,7 +751,7 @@ impl<'x, Value> Entry<'x, Value> {
 }
 
 impl<'x, Value> OccupiedEntry<'x, Value> {
-    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> OccupiedEntry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Self {
         OccupiedEntry {
             node: node,
             cont_size: size,
@@ -737,7 +782,7 @@ impl<'x, Value> OccupiedEntry<'x, Value> {
 }
 
 impl<'x, Value> VacantEntry<'x, Value> {
-    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> VacantEntry<'x, Value> {
+    fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Self {
         VacantEntry {
             node: node,
             cont_size: size,

@@ -35,7 +35,7 @@ impl TSTSet {
     ///
     /// let mut s: TSTSet = TSTSet::new();
     /// ```
-    pub fn new() -> TSTSet {
+    pub fn new() -> Self {
         TSTSet { map: TSTMap::new() }
     }
 
