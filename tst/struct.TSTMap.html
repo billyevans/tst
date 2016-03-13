@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-463' class='srclink' href='../src/tst/map.rs.html#49-52' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-510' class='srclink' href='../src/tst/map.rs.html#49-52' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct TSTMap&lt;Value&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Symbol table with string keys, implemented using a ternary search
@@ -82,7 +82,7 @@ Also it provides extra features, like getting all keys, values with common prefi
 }</pre>
 
 <p>Root struct for TSTMap, which holds root and size.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;Value&gt; <a class='struct' href='../tst/struct.TSTMap.html' title='tst::TSTMap'>TSTMap</a>&lt;Value&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../tst/struct.TSTMap.html' title='tst::TSTMap'>TSTMap</a>&lt;Value&gt;</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;Value&gt; <a class='struct' href='../tst/struct.TSTMap.html' title='tst::TSTMap'>TSTMap</a>&lt;Value&gt;</code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></h4>
 <div class='docblock'><p>Constructs a new, empty <code>TSTMap&lt;Value&gt;</code>.</p>
 
 <h1 id='examples-1' class='section-header'><a href='#examples-1'>Examples</a></h1><pre class='rust rust-example-rendered'>
@@ -208,21 +208,23 @@ Iterator element type is (String, V)</p>
 <span class='kw'>for</span> (<span class='ident'>k</span>, <span class='ident'>v</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>wildcard_iter</span>(<span class='string'>&quot;.&quot;</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{} -&gt; {}&quot;</span>, <span class='ident'>k</span>, <span class='ident'>v</span>);
 }</pre>
-</div><h4 id='method.longest_prefix' class='method'><code>fn <a href='#method.longest_prefix' class='fnname'>longest_prefix</a>&lt;'x&gt;(&amp;self, pref: &amp;'x <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; &amp;'x <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
-<div class='docblock'><p>Method returns longest prefix in the TSTMap</p>
+</div><h4 id='method.wildcard_iter_mut' class='method'><code>fn <a href='#method.wildcard_iter_mut' class='fnname'>wildcard_iter_mut</a>(&amp;mut self, pat: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../tst/tst_map/struct.WildCardIterMut.html' title='tst::tst_map::WildCardIterMut'>WildCardIterMut</a>&lt;Value&gt;</code></h4>
+<div class='docblock'><p>An mutable iterator returning all nodes matching wildcard pattern.</p>
 
 <h1 id='examples-12' class='section-header'><a href='#examples-12'>Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>TSTMap</span>;
-<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TSTMap</span>::<span class='ident'>new</span>();
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>, <span class='number'>1</span>);
-<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>, <span class='number'>1</span>);
 
-<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='ident'>m</span>.<span class='ident'>longest_prefix</span>(<span class='string'>&quot;abcde&quot;</span>));</pre>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TSTMap</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;a&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;b&quot;</span>, <span class='number'>2</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;c&quot;</span>, <span class='number'>3</span>);
+
+<span class='kw'>for</span> (<span class='ident'>k</span>, <span class='ident'>v</span>) <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>wildcard_iter_mut</span>(<span class='string'>&quot;.&quot;</span>) {
+    <span class='op'>*</span><span class='ident'>v</span> <span class='op'>+=</span> <span class='number'>10</span>;
+}
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>11</span>, <span class='ident'>m</span>[<span class='string'>&quot;a&quot;</span>]);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>12</span>, <span class='ident'>m</span>[<span class='string'>&quot;b&quot;</span>]);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='number'>13</span>, <span class='ident'>m</span>[<span class='string'>&quot;c&quot;</span>]);</pre>
 </div><h4 id='method.prefix_iter' class='method'><code>fn <a href='#method.prefix_iter' class='fnname'>prefix_iter</a>(&amp;self, pref: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='../tst/tst_map/struct.Iter.html' title='tst::tst_map::Iter'>Iter</a>&lt;Value&gt;</code></h4>
 <div class='docblock'><p>Method returns iterator over all values with common prefix in the TSTMap</p>
 
@@ -327,6 +329,21 @@ Iterator element type is &amp;V</p>
 <span class='kw'>for</span> <span class='ident'>value</span> <span class='kw'>in</span> <span class='ident'>m</span>.<span class='ident'>values</span>() {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>value</span>);
 }</pre>
+</div></div><h3 class='impl'><code>impl&lt;'x, Value: 'x&gt; <a class='struct' href='../tst/struct.TSTMap.html' title='tst::TSTMap'>TSTMap</a>&lt;Value&gt;</code></h3><div class='impl-items'><h4 id='method.longest_prefix' class='method'><code>fn <a href='#method.longest_prefix' class='fnname'>longest_prefix</a>(&amp;self, pref: &amp;'x <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; &amp;'x <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+<div class='docblock'><p>Method returns longest prefix in the TSTMap</p>
+
+<h1 id='examples-19' class='section-header'><a href='#examples-19'>Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>tst</span>::<span class='ident'>TSTMap</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>m</span> <span class='op'>=</span> <span class='ident'>TSTMap</span>::<span class='ident'>new</span>();
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abc&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abce&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abca&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;zxd&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;add&quot;</span>, <span class='number'>1</span>);
+<span class='ident'>m</span>.<span class='ident'>insert</span>(<span class='string'>&quot;abcdef&quot;</span>, <span class='number'>1</span>);
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;abcd&quot;</span>, <span class='ident'>m</span>.<span class='ident'>longest_prefix</span>(<span class='string'>&quot;abcde&quot;</span>));</pre>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;Value&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for <a class='struct' href='../tst/struct.TSTMap.html' title='tst::TSTMap'>TSTMap</a>&lt;Value&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Item' class='type'><code>type Item = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>, Value)</a></code></h4>
 <h4 id='assoc_type.IntoIter' class='type'><code>type IntoIter = <a class='struct' href='../tst/tst_map/struct.IntoIter.html' title='tst::tst_map::IntoIter'>IntoIter</a>&lt;Value&gt;</code></h4>
 <h4 id='method.into_iter' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html#method.into_iter' class='fnname'>into_iter</a>(self) -&gt; <a class='struct' href='../tst/tst_map/struct.IntoIter.html' title='tst::tst_map::IntoIter'>IntoIter</a>&lt;Value&gt;</code></h4>
