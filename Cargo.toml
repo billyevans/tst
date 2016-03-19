@@ -1,7 +1,7 @@
 [package]
 
 name = "tst"
-version = "0.8.0"
+version = "0.8.1"
 
 authors = ["Alexey Pervushin <pervushinai@gmail.com>"]
 readme = "README.md"
@@ -11,3 +11,4 @@ keywords = ["data-structures"]
 repository = "https://github.com/billyevans/tst"
 homepage = "https://github.com/billyevans/tst"
 documentation = "http://billyevans.github.io/tst/tst"
+include = ["src/*.rs", "Cargo.toml"]

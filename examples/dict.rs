@@ -1,7 +1,7 @@
 extern crate tst;
 
 use std::env;
-use self::tst::TSTSet;
+use tst::TSTSet;
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;

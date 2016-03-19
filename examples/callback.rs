@@ -1,7 +1,7 @@
 extern crate tst;
 
 use std::env;
-use self::tst::TSTMap;
+use tst::TSTMap;
 
 fn main() {
     let mut m = TSTMap::<Box<(Fn(i32) -> i32)>>::new();

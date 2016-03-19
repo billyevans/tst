@@ -26,12 +26,14 @@ use super::traverse::{self, Traverse, ValuesTraverse, IntoTraverse, WildCardTrav
 /// m.insert("second", 2);
 /// m.insert("firstthird", 3);
 /// m.insert("firstsecond", 12);
+/// m.insert("xirst", -13);
 ///
+/// // iterate
 /// for (key, value) in m.iter() {
 ///     println!("{}: {}", key, value);
 /// }
 /// assert_eq!(Some(&1), m.get("first"));
-/// assert_eq!(4, m.len());
+/// assert_eq!(5, m.len());
 ///
 /// // calculating longest prefix
 /// assert_eq!("firstsecond", m.longest_prefix("firstsecondthird"));
@@ -40,6 +42,9 @@ use super::traverse::{self, Traverse, ValuesTraverse, IntoTraverse, WildCardTrav
 /// for (key, value) in m.prefix_iter("first") {
 ///     println!("{}: {}", key, value);
 /// }
+///
+/// // get sum by wildcard iterator
+/// assert_eq!(-12, m.wildcard_iter(".irst").fold(0, |sum, (_, val)| sum + val));
 /// ```
 
 // by design TSTMap depends on order of inserts in it, not only on keys and data itself

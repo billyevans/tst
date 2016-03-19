@@ -10,6 +10,40 @@ Now it's first simplest implementation, that's the reason why it's recursive.
 Documentation is available at http://billyevans.github.io/tst/tst
 
 It has special methods:
-- wildcard_iter - get iterator by wildcard
+- wildcard_iter/wildcard_iter_mut - get iterator by wildcard
 - prefix_iter/prefix_iter_mut - get iterator by prefix
 - longest_prefix - get longest prefix
+
+
+
+```rust
+#[macro_use] extern crate tst;
+
+use tst::TSTMap;
+
+let m = tstmap! {
+    "first" =>  1,
+    "second" => 2,
+    "firstthird" => 3,
+    "firstsecond" => 12,
+    "xirst" => -13,
+};
+
+// iterate
+for (key, value) in m.iter() {
+    println!("{}: {}", key, value);
+}
+assert_eq!(Some(&1), m.get("first"));
+assert_eq!(5, m.len());
+
+// calculating longest prefix
+assert_eq!("firstsecond", m.longest_prefix("firstsecondthird"));
+
+// get values with common prefix
+for (key, value) in m.prefix_iter("first") {
+    println!("{}: {}", key, value);
+}
+
+// get sum by wildcard iterator
+assert_eq!(-12, m.wildcard_iter(".irst").fold(0, |sum, (_, val)| sum + val));
+```
