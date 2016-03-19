@@ -856,6 +856,11 @@
 <span id="813">813</span>
 <span id="814">814</span>
 <span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>;
@@ -885,12 +890,14 @@
 <span class='doccomment'>/// m.insert(&quot;second&quot;, 2);</span>
 <span class='doccomment'>/// m.insert(&quot;firstthird&quot;, 3);</span>
 <span class='doccomment'>/// m.insert(&quot;firstsecond&quot;, 12);</span>
+<span class='doccomment'>/// m.insert(&quot;xirst&quot;, -13);</span>
 <span class='doccomment'>///</span>
+<span class='doccomment'>/// // iterate</span>
 <span class='doccomment'>/// for (key, value) in m.iter() {</span>
 <span class='doccomment'>///     println!(&quot;{}: {}&quot;, key, value);</span>
 <span class='doccomment'>/// }</span>
 <span class='doccomment'>/// assert_eq!(Some(&amp;1), m.get(&quot;first&quot;));</span>
-<span class='doccomment'>/// assert_eq!(4, m.len());</span>
+<span class='doccomment'>/// assert_eq!(5, m.len());</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// // calculating longest prefix</span>
 <span class='doccomment'>/// assert_eq!(&quot;firstsecond&quot;, m.longest_prefix(&quot;firstsecondthird&quot;));</span>
@@ -899,6 +906,9 @@
 <span class='doccomment'>/// for (key, value) in m.prefix_iter(&quot;first&quot;) {</span>
 <span class='doccomment'>///     println!(&quot;{}: {}&quot;, key, value);</span>
 <span class='doccomment'>/// }</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// // get sum by wildcard iterator</span>
+<span class='doccomment'>/// assert_eq!(-12, m.wildcard_iter(&quot;.irst&quot;).fold(0, |sum, (_, val)| sum + val));</span>
 <span class='doccomment'>/// ```</span>
 
 <span class='comment'>// by design TSTMap depends on order of inserts in it, not only on keys and data itself</span>
