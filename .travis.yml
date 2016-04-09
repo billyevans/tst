@@ -26,4 +26,6 @@ after_success:
 
 deploy:
   provider: script
-  script: bash -x ./deploy.sh
+  script: bash -e ./deploy.sh
+  on:
+    tags: true
