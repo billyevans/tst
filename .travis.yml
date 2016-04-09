@@ -23,3 +23,9 @@ after_success:
   - kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/set_ut-*
   - kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/tst-*
   - bash deploy-docs.sh
+
+deploy:
+  provider: script
+  script: deploy.sh
+  on:
+    tags: true
