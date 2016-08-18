@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
+    
 
     
     
@@ -43,70 +44,62 @@
 
     <section id='main' class="content mod">
 <h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>tst</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-0' class='srclink' href='../src/tst/lib.rs.html#1-90' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/tst/src/lib.rs.html#1-90' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Ternary search trie (TST) container.</p>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='tst_map/index.html'
-                               title='tst::tst_map'>tst_map</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='tst_set/index.html'
-                               title='tst::tst_set'>tst_set</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                </table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='tst_map/index.html'
+                                  title='tst::tst_map'>tst_map</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='tst_set/index.html'
+                                  title='tst::tst_set'>tst_set</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='macro' href='macro.tstmap!.html'
-                               title='tst::tstmap!'>tstmap!</a></td>
-                        <td class='docblock short'>
-                             <ul>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro.tstmap!.html'
+                                  title='tst::tstmap!'>tstmap!</a></td>
+                           <td class='docblock short'>
+                                <ul>
 <li>Create a <code>TSTMap</code> containing a given list of elements:</li>
 </ul>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='macro' href='macro.tstset!.html'
-                               title='tst::tstset!'>tstset!</a></td>
-                        <td class='docblock short'>
-                             <ul>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='macro' href='macro.tstset!.html'
+                                  title='tst::tstset!'>tstset!</a></td>
+                           <td class='docblock short'>
+                                <ul>
 <li>Create a <code>TSTSet</code> containing a given list of elements:</li>
 </ul>
-
-                        </td>
-                    </tr>
-                </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.TSTMap.html'
-                               title='tst::TSTMap'>TSTMap</a></td>
-                        <td class='docblock short'>
-                             
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.TSTSet.html'
-                               title='tst::TSTSet'>TSTSet</a></td>
-                        <td class='docblock short'>
-                             <p>A set based on a TSTMap.</p>
-
-                        </td>
-                    </tr>
-                </table></section>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.TSTMap.html'
+                                  title='tst::TSTMap'>TSTMap</a></td>
+                           <td class='docblock short'>
+                                <p>Symbol table with string keys, implemented using a ternary search
+trie (<code>TSTMap</code>).</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.TSTSet.html'
+                                  title='tst::TSTSet'>TSTSet</a></td>
+                           <td class='docblock short'>
+                                <p>A set based on a <code>TSTMap</code>.</p>
+                           </td>
+                       </tr></table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -129,6 +122,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 
@@ -149,7 +144,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>

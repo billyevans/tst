@@ -9,8 +9,9 @@
 
     <title>set.rs.html -- source</title>
 
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
 
     
     
@@ -353,36 +354,42 @@
 <span id="310">310</span>
 <span id="311">311</span>
 <span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>tst_map</span>::{<span class='self'>self</span>, <span class='ident'>TSTMap</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>::{<span class='self'>self</span>, <span class='ident'>Debug</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>iter</span>::{<span class='ident'>Map</span>, <span class='ident'>FromIterator</span>};
 
-<span class='doccomment'>/// A set based on a TSTMap.</span>
+<span class='doccomment'>/// A set based on a `TSTMap`.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>, <span class='ident'>PartialEq</span>, <span class='ident'>Eq</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>TSTSet</span> {
     <span class='ident'>map</span>: <span class='ident'>TSTMap</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span>,
 }
 
-<span class='doccomment'>/// An iterator over a TSTSet&#39;s items.</span>
+<span class='doccomment'>/// An iterator over a `TSTSet`&#39;s items.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
     <span class='ident'>iter</span>: <span class='ident'>Map</span><span class='op'>&lt;</span><span class='ident'>tst_map</span>::<span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, ()<span class='op'>&gt;</span>, <span class='kw'>fn</span>((<span class='ident'>String</span>, <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> ())) <span class='op'>-&gt;</span> <span class='ident'>String</span><span class='op'>&gt;</span>
 }
 
-<span class='doccomment'>/// An owning iterator over a TSTSet&#39;s items.</span>
+<span class='doccomment'>/// An owning iterator over a `TSTSet`&#39;s items.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>IntoIter</span> {
     <span class='ident'>iter</span>: <span class='ident'>Map</span><span class='op'>&lt;</span><span class='ident'>tst_map</span>::<span class='ident'>IntoIter</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span>, <span class='kw'>fn</span>((<span class='ident'>String</span>, ())) <span class='op'>-&gt;</span> <span class='ident'>String</span><span class='op'>&gt;</span>
 }
 
-<span class='doccomment'>/// TSTMap wild-card iterator.</span>
+<span class='doccomment'>/// `TSTSet` wild-card iterator.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Clone</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>WildCardIter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
     <span class='ident'>iter</span>: <span class='ident'>Map</span><span class='op'>&lt;</span><span class='ident'>tst_map</span>::<span class='ident'>WildCardIter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, ()<span class='op'>&gt;</span>, <span class='kw'>fn</span>( (<span class='ident'>String</span>, <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> () )) <span class='op'>-&gt;</span> <span class='ident'>String</span><span class='op'>&gt;</span>,
 }
 
 <span class='kw'>impl</span> <span class='ident'>TSTSet</span> {
-    <span class='doccomment'>/// Makes a new empty TSTSet.</span>
+    <span class='doccomment'>/// Makes a new empty `TSTSet`.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
@@ -391,7 +398,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// let mut s: TSTSet = TSTSet::new();</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>() <span class='op'>-&gt;</span> <span class='self'>Self</span> {
         <span class='ident'>TSTSet</span> { <span class='ident'>map</span>: <span class='ident'>TSTMap</span>::<span class='ident'>new</span>() }
     }
 
@@ -442,7 +449,7 @@
         <span class='self'>self</span>.<span class='ident'>map</span>.<span class='ident'>clear</span>()
     }
 
-    <span class='doccomment'>/// Returns `true` if the set contains a value.</span>
+    <span class='doccomment'>/// Returns `true` if the set contains a `key`.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Examples</span>
     <span class='doccomment'>///</span>
@@ -642,6 +649,12 @@
     }
 }
 
+<span class='kw'>impl</span> <span class='ident'>Default</span> <span class='kw'>for</span> <span class='ident'>TSTSet</span> {
+    <span class='kw'>fn</span> <span class='ident'>default</span>() <span class='op'>-&gt;</span> <span class='self'>Self</span> {
+        <span class='self'>Self</span>::<span class='ident'>new</span>()
+    }
+}
+
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> <span class='ident'>Iterator</span> <span class='kw'>for</span> <span class='ident'>Iter</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span> {
     <span class='kw'>type</span> <span class='ident'>Item</span> <span class='op'>=</span> <span class='ident'>String</span>;
 
@@ -690,6 +703,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 
@@ -710,7 +725,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>
@@ -719,13 +734,13 @@
     
 
     <script>
-        window.rootPath = "../../";
+        window.rootPath = "../../../";
         window.currentCrate = "tst";
         window.playgroundUrl = "";
     </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
     
-    <script defer src="../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>
