@@ -71,7 +71,7 @@ impl<Value> BoxedNode<Value> {
         }
     }
 
-    fn as_node_ref_mut<'x>(&'x mut self) -> &'x mut Node<Value> {
+    fn as_node_ref_mut(&mut self) -> &mut Node<Value> {
         match self.ptr {
             None => unreachable!(),
             Some(ref mut ptr) => ptr,
@@ -92,7 +92,7 @@ impl<Value> BoxedNode<Value> {
         }
     }
 
-    pub fn as_mut<'x>(&'x mut self) -> BoxedNodeRefMut<'x, Value> {
+    pub fn as_mut(&mut self) -> BoxedNodeRefMut<Value> {
         BoxedNodeRefMut {
             node: self as *mut BoxedNode<Value>,
             _marker: PhantomData,
@@ -159,7 +159,7 @@ impl<'x, Value> Clone for NodeRef<'x, Value> {
 }
 
 impl<'x, Value> NodeRefMut<'x, Value> {
-    pub fn as_immut(self) -> NodeRef<'x, Value> {
+    pub fn into_immut(self) -> NodeRef<'x, Value> {
         NodeRef {
             node: self.node,
             _marker: PhantomData,

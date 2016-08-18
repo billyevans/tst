@@ -91,7 +91,7 @@ impl<'x, Value> Traverse<'x, Value> {
                 TraverseEntry::Node((prefix, node)) => {
                     match node.as_option() {
                         None => {}
-                        Some(ref cur) => {
+                        Some(cur) => {
                             if cur.gt.is_some() {
                                 self.stack.push(TraverseEntry::Node((prefix.clone(), cur.gt.as_ref())));
                             }
@@ -261,7 +261,7 @@ impl<'x, Value> ValuesTraverse<'x, Value> {
                 TraverseEntry::Node(node) => {
                     match node.as_option() {
                         None => {}
-                        Some(ref cur) => {
+                        Some(cur) => {
                             if cur.gt.is_some() {
                                 self.stack.push(TraverseEntry::Node(cur.gt.as_ref()));
                             }
@@ -315,7 +315,7 @@ impl<'x, Value> WildCardTraverse<'x, Value> {
                 TraverseEntry::Node((prefix, node, idx)) => {
                     match node.as_option() {
                         None => {}
-                        Some(ref cur) => {
+                        Some(cur) => {
                             let ch = self.pat[idx];
                             if (ch == '.' || ch > cur.c) && cur.gt.is_some() {
                                 self.stack.push(TraverseEntry::Node((prefix.clone(), cur.gt.as_ref(), idx)));
@@ -353,7 +353,7 @@ impl<'x, Value> WildCardTraverse<'x, Value> {
 fn lookup_next<'x, Value>(node: &NodeRef<'x, Value>, ch: char) -> CompareResult<NodeRef<'x, Value>> {
     match node.as_option() {
         None => CompareResult::NotFound,
-        Some(ref cur) => {
+        Some(cur) => {
             match ch.cmp(&cur.c) {
                 Ordering::Less => CompareResult::GoLeftOrRight(cur.lt.as_ref()),
                 Ordering::Greater => CompareResult::GoLeftOrRight(cur.gt.as_ref()),
@@ -383,7 +383,7 @@ pub fn search<'x, Value>(mut node: NodeRef<'x, Value>, key: &str) ->
 
     for ch in key.chars() {
         let mut go_next = false;
-        while go_next == false {
+        while !go_next {
             node = match lookup_next(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
@@ -405,7 +405,7 @@ pub fn insert<'x, Value>(mut node: BoxedNodeRefMut<'x, Value>, key: &str) -> &'x
 
     for ch in key.chars() {
         let mut go_next = false;
-        while go_next == false {
+        while !go_next {
             node = match lookup_next_mut(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
@@ -426,7 +426,7 @@ pub fn insert<'x, Value>(mut node: BoxedNodeRefMut<'x, Value>, key: &str) -> &'x
 pub fn search_mut<'x, Value>(node: NodeRefMut<'x, Value>, key: &str) ->
         Option<&'x mut Node<Value>>
 {
-    unsafe { mem::transmute(search(node.as_immut(), key)) }
+    unsafe { mem::transmute(search(node.into_immut(), key)) }
 }
 
 pub fn longest_prefix<'x, Value>(mut node: NodeRef<'x, Value>, pref: &'x str) -> &'x str {
@@ -434,7 +434,7 @@ pub fn longest_prefix<'x, Value>(mut node: NodeRef<'x, Value>, pref: &'x str) ->
     let mut i: usize = 0;
     for ch in pref.chars() {
         let mut go_next = false;
-        while go_next == false {
+        while !go_next {
             node = match lookup_next(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,
                 CompareResult::GoDown(next) => {
@@ -449,16 +449,16 @@ pub fn longest_prefix<'x, Value>(mut node: NodeRef<'x, Value>, pref: &'x str) ->
             }
         }
     }
-    return &pref[..length];
+    &pref[..length]
 }
 
-pub fn remove<'x, Value>(mut node: BoxedNodeRefMut<Value>, key: &str) -> Option<Value> {
+pub fn remove<Value>(mut node: BoxedNodeRefMut<Value>, key: &str) -> Option<Value> {
     let mut stack = Trace::<BoxedNodeRefMut<Value>>::new(key.len());
     let mut ptr = None;
 
     for ch in key.chars() {
         let mut go_next = false;
-        while go_next == false {
+        while !go_next {
             stack.push(node.clone());
             node = match lookup_next_mut(&node, ch) {
                 CompareResult::GoLeftOrRight(next) => next,

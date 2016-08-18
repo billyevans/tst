@@ -2,31 +2,31 @@ use tst_map::{self, TSTMap};
 use std::fmt::{self, Debug};
 use std::iter::{Map, FromIterator};
 
-/// A set based on a TSTMap.
+/// A set based on a `TSTMap`.
 #[derive(Clone, PartialEq, Eq)]
 pub struct TSTSet {
     map: TSTMap<()>,
 }
 
-/// An iterator over a TSTSet's items.
+/// An iterator over a `TSTSet`'s items.
 #[derive(Clone)]
 pub struct Iter<'a> {
     iter: Map<tst_map::Iter<'a, ()>, fn((String, &'a ())) -> String>
 }
 
-/// An owning iterator over a TSTSet's items.
+/// An owning iterator over a `TSTSet`'s items.
 pub struct IntoIter {
     iter: Map<tst_map::IntoIter<()>, fn((String, ())) -> String>
 }
 
-/// TSTMap wild-card iterator.
+/// `TSTSet` wild-card iterator.
 #[derive(Clone)]
 pub struct WildCardIter<'a> {
     iter: Map<tst_map::WildCardIter<'a, ()>, fn( (String, &'a () )) -> String>,
 }
 
 impl TSTSet {
-    /// Makes a new empty TSTSet.
+    /// Makes a new empty `TSTSet`.
     ///
     /// # Examples
     ///
@@ -86,7 +86,7 @@ impl TSTSet {
         self.map.clear()
     }
 
-    /// Returns `true` if the set contains a value.
+    /// Returns `true` if the set contains a `key`.
     ///
     /// # Examples
     ///
@@ -283,6 +283,12 @@ impl Debug for TSTSet {
             try!(write!(f, "{:?},", x));
         }
         (write!(f, "}}"))
+    }
+}
+
+impl Default for TSTSet {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

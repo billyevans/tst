@@ -9,7 +9,7 @@ use super::traverse::{self, Traverse, ValuesTraverse, IntoTraverse, WildCardTrav
 
 ///
 /// Symbol table with string keys, implemented using a ternary search
-/// trie (TSTMap).
+/// trie (`TSTMap`).
 ///
 /// There is character on each node of the trie, value and links for children.
 /// Each node has 3 children: smaller (lt), equal (eq), larger (gt).
@@ -49,7 +49,7 @@ use super::traverse::{self, Traverse, ValuesTraverse, IntoTraverse, WildCardTrav
 
 // by design TSTMap depends on order of inserts in it, not only on keys and data itself
 
-/// Root struct for TSTMap, which holds root and size.
+/// Root struct for `TSTMap`, which holds root and size.
 #[derive(Clone, PartialEq, Eq)]
 pub struct TSTMap<Value> {
     root: BoxedNode<Value>,
@@ -114,7 +114,7 @@ impl<Value> TSTMap<Value> {
         }
     }
 
-    /// Gets the given key's corresponding entry in the TSTMap for in-place manipulation.
+    /// Gets the given `key`'s corresponding entry in the TSTMap for in-place manipulation.
     ///
     /// # Examples
     ///
@@ -137,7 +137,7 @@ impl<Value> TSTMap<Value> {
         Entry::<Value>::new(cur, l)
     }
 
-    /// Removes a key from the TSTMap, returning the value at the key if the key
+    /// Removes a `key` from the TSTMap, returning the value at the key if the key
     /// was previously in the TSTMap.
     ///
     /// # Examples
@@ -158,7 +158,7 @@ impl<Value> TSTMap<Value> {
         ret
     }
 
-    /// Returns a reference to the value corresponding to the key or None.
+    /// Returns a reference to the value corresponding to the `key` or None.
     ///
     /// # Examples
     ///
@@ -182,7 +182,7 @@ impl<Value> TSTMap<Value> {
         }
     }
 
-    /// Returns a mutable reference to the value corresponding to the key.
+    /// Returns a mutable reference to the value corresponding to the `key`.
     ///
     /// # Examples
     ///
@@ -208,7 +208,7 @@ impl<Value> TSTMap<Value> {
         }
     }
 
-    /// Returns true if the TSTMap contains a value for the specified key.
+    /// Returns true if the `TSTMap` contains a value for the specified `key`.
     /// # Examples
     ///
     /// ```
@@ -224,7 +224,7 @@ impl<Value> TSTMap<Value> {
         self.get(key).is_some()
     }
 
-    /// Returns true if the TSTMap contains no elements.
+    /// Returns true if the `TSTMap` contains no elements.
     ///
     /// # Examples
     ///
@@ -240,7 +240,7 @@ impl<Value> TSTMap<Value> {
     #[inline]
     pub fn is_empty(&self) -> bool { self.size == 0 }
 
-    /// Clears the TSTMap.
+    /// Clears the `TSTMap`.
     ///
     /// # Examples
     ///
@@ -257,7 +257,7 @@ impl<Value> TSTMap<Value> {
     /// ```
     pub fn clear(&mut self) { *self = TSTMap::<Value>::new(); }
 
-    /// An iterator returning all nodes matching wildcard pattern.
+    /// An iterator returning all nodes matching wildcard pattern `pat`.
     /// Iterator element type is (String, V)
     ///
     /// # Examples
@@ -278,7 +278,7 @@ impl<Value> TSTMap<Value> {
         WildCardIter::new(self.root.as_ref(), pat, self.len())
     }
 
-    /// An mutable iterator returning all nodes matching wildcard pattern.
+    /// An mutable iterator returning all nodes matching wildcard pattern `pat`.
     ///
     /// # Examples
     ///
@@ -301,7 +301,7 @@ impl<Value> TSTMap<Value> {
         WildCardIterMut::new(self.root.as_ref_mut(), pat, self.len())
     }
 
-    /// Method returns iterator over all values with common prefix in the TSTMap
+    /// Method returns iterator over all values with common prefix `pref` in the `TSTMap`.
     /// # Examples
     ///
     /// ```
@@ -327,7 +327,7 @@ impl<Value> TSTMap<Value> {
         Iter::with_prefix(node, pref, self.len())
     }
 
-    /// Method returns mutable iterator over all values with common prefix in the TSTMap
+    /// Method returns mutable iterator over all values with common prefix `pref` in the `TSTMap`.
     /// # Examples
     ///
     /// ```
@@ -377,7 +377,7 @@ impl<Value> TSTMap<Value> {
         Iter::new(self.root.as_ref(), len, len)
     }
 
-    /// Gets a mutable iterator over the entries of the TSTMap.
+    /// Gets a mutable iterator over the entries of the `TSTMap`.
     ///
     /// # Examples
     ///
@@ -447,7 +447,7 @@ impl<Value> TSTMap<Value> {
 }
 
 impl<'x, Value: 'x> TSTMap<Value> {
-    /// Method returns longest prefix in the TSTMap
+    /// Method returns longest prefix `pref` in the `TSTMap`.
     ///
     /// # Examples
     ///
@@ -474,7 +474,7 @@ impl<Value> IntoIterator for TSTMap<Value> {
     type IntoIter = IntoIter<Value>;
 
     /// Creates a consuming iterator, that is, one that moves each key-value
-    /// pair out of the TSTMap in arbitrary order. The TSTMap cannot be used after
+    /// pair out of the `TSTMap` in arbitrary order. The `TSTMap` cannot be used after
     /// calling this.
     ///
     /// # Examples
@@ -530,7 +530,7 @@ impl<'x, Value> ops::IndexMut<&'x str> for TSTMap<Value> {
 
 impl<Value> Drop for TSTMap<Value> {
     fn drop(&mut self) {
-        let root = mem::replace(&mut self.root.ptr, None);
+        let root = self.root.take();
         let mut iter = DropTraverse::new(root);
         for _ in iter.next() { }
     }
@@ -550,7 +550,7 @@ impl<Value: Debug> Debug for TSTMap<Value> {
 // iterators section
 //
 
-/// TSTMap iterator.
+/// `TSTMap` iterator.
 #[derive(Clone, Default)]
 pub struct Iter<'x, Value: 'x> {
     iter: Traverse<'x, Value>,
@@ -579,7 +579,7 @@ impl<'x, Value> Iterator for Iter<'x, Value> {
     }
 }
 
-/// TSTMap mutable iterator.
+/// `TSTMap` mutable iterator.
 #[derive(Clone, Default)]
 pub struct IterMut<'x, Value: 'x> {
     iter: Traverse<'x, Value>,
@@ -588,7 +588,7 @@ pub struct IterMut<'x, Value: 'x> {
 impl<'x, Value> IterMut<'x, Value> {
     fn new(node: NodeRefMut<'x, Value>, min: usize, max: usize) -> Self {
         IterMut {
-            iter: Traverse::new(node.as_immut(), min, max),
+            iter: Traverse::new(node.into_immut(), min, max),
         }
     }
     fn with_prefix(ptr: Option<&'x Node<Value>>, prefix: &str, max: usize) -> Self {
@@ -607,7 +607,7 @@ impl<'x, Value> Iterator for IterMut<'x, Value> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TSTMap keys iterator
+/// `TSTMap` keys iterator
 #[derive(Clone)]
 pub struct KeysIter<'x, Value: 'x> {
     iter: Map<Iter<'x, Value>, fn((String, &'x Value)) -> String>,
@@ -619,7 +619,7 @@ impl<'x, Value:'x> Iterator for KeysIter<'x, Value> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TSTMap values iterator
+/// `TSTMap` values iterator
 #[derive(Clone)]
 pub struct ValuesIter<'x, Value:'x> {
     iter: ValuesTraverse<'x, Value>,
@@ -631,7 +631,7 @@ impl<'x, Value:'x> Iterator for ValuesIter<'x, Value> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TSTMap wild-card iterator.
+/// `TSTMap` wild-card iterator.
 #[derive(Clone)]
 pub struct WildCardIter<'x, Value: 'x> {
     iter: WildCardTraverse<'x, Value>,
@@ -651,7 +651,7 @@ impl<'x, Value> Iterator for WildCardIter<'x, Value> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TSTMap wild-card mutable iterator.
+/// `TSTMap` wild-card mutable iterator.
 #[derive(Clone)]
 pub struct WildCardIterMut<'x, Value: 'x> {
     iter: WildCardTraverse<'x, Value>,
@@ -660,7 +660,7 @@ pub struct WildCardIterMut<'x, Value: 'x> {
 impl<'x, Value> WildCardIterMut<'x, Value> {
     fn new(node: NodeRefMut<'x, Value>, pat: &str, max: usize) -> Self {
         WildCardIterMut {
-            iter: WildCardTraverse::new(node.as_immut(), pat, max),
+            iter: WildCardTraverse::new(node.into_immut(), pat, max),
         }
     }
 }
@@ -671,7 +671,7 @@ impl<'x, Value> Iterator for WildCardIterMut<'x, Value> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
 }
 
-/// TSTMap consuming iterator
+/// `TSTMap` consuming iterator
 pub struct IntoIter<Value> {
     iter: IntoTraverse<Value>,
 }
@@ -679,7 +679,7 @@ pub struct IntoIter<Value> {
 impl<Value> IntoIter<Value> {
     fn new(mut tst: TSTMap<Value>) -> Self {
         let size = tst.len();
-        let root = mem::replace(&mut tst.root.ptr, None);
+        let root = tst.root.take();
         IntoIter {
             iter: IntoTraverse::new(root, size),
         }
@@ -703,19 +703,19 @@ impl<Value> ExactSizeIterator for IntoIter<Value> {
 // Entry section
 //
 
-/// A view into a single occupied location in a TSTMap.
+/// A view into a single occupied location in a `TSTMap`.
 pub struct OccupiedEntry<'x, Value: 'x> {
     node: &'x mut Node<Value>,
     cont_size: &'x mut usize,
 }
 
-/// A view into a single empty location in a TSTMap.
+/// A view into a single empty location in a `TSTMap`.
 pub struct VacantEntry<'x, Value: 'x> {
     node: &'x mut Node<Value>,
     cont_size: &'x mut usize,
 }
 
-/// A view into a single location in a TSTMap, which may be vacant or occupied.
+/// A view into a single location in a `TSTMap`, which may be vacant or occupied.
 pub enum Entry<'x, Value: 'x> {
     /// A vacant Entry
     Occupied(OccupiedEntry<'x, Value>),
@@ -775,7 +775,7 @@ impl<'x, Value> OccupiedEntry<'x, Value> {
     pub fn into_mut(self) -> &'x mut Value {
         self.node.value.as_mut().unwrap()
     }
-    /// Sets the value of the entry, and returns the entry's old value
+    /// Sets the `value` of the entry, and returns the entry's old value
     pub fn insert(&mut self, value: Value) -> Value {
         self.node.replace(Some(value)).unwrap()
     }
@@ -793,7 +793,7 @@ impl<'x, Value> VacantEntry<'x, Value> {
             cont_size: size,
         }
     }
-    /// Sets the value of the entry with the VacantEntry's key,
+    /// Sets the `value` of the entry with the VacantEntry's key,
     /// and returns a mutable reference to it
     pub fn insert(self, value: Value) -> &'x mut Value {
         self.node.value = Some(value);
