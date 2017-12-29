@@ -184,7 +184,6 @@ fn entry_vacant() {
         },
         Occupied(_) => unreachable!(),
     }
-    println!("{:?}", m);
     assert_eq!(Some(&100), m.get("abcdg"));
     assert_eq!(1, m.len());
 }
@@ -232,7 +231,7 @@ fn is_empty() {
     assert_eq!(0, m.len());
     assert!(m.is_empty());
 
-    m.insert("qwer", 10000);
+    m.insert("qwer", 10_000);
     assert!(!m.is_empty());
 
     m.clear();
@@ -384,7 +383,7 @@ fn format() {
     m.insert("abc", 2);
     m.insert("abd", 1);
     m.insert("abdd", 4);
-    m.insert("abcdefghjkik", -169874);
+    m.insert("abcdefghjkik", -169_874);
 
     let m_str = format!("{:?}", m);
     assert_eq!(
@@ -757,7 +756,7 @@ fn  insert_remove_get_big_key_not_overflow_stack() {
     let mut m = TSTMap::new();
     let mut key = String::new();
 
-    while key.len() < 1000000 {
+    while key.len() < 1_000_000 {
         key.push_str("qwertyuiopasdfghjkl;");
     }
     m.insert(&key, 666);
@@ -773,7 +772,7 @@ fn  drop_stack_overflow() {
     let mut m = TSTMap::new();
     let mut key = String::new();
 
-    while key.len() < 1000000 {
+    while key.len() < 1_000_000 {
         key.push_str("qwertyuiopasdfghjkl;");
     }
     m.insert(&key, 666);

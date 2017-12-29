@@ -65,10 +65,7 @@ impl<Value> TSTMap<Value> {
     /// let mut t: TSTMap<i64> = TSTMap::new();
     /// ```
     pub fn new() -> Self {
-        TSTMap {
-            root: Default::default(),
-            size: 0,
-        }
+        Default::default()
     }
 
     /// Returns the number of elements in the container.
@@ -103,8 +100,7 @@ impl<Value> TSTMap<Value> {
     /// assert_eq!(2, m.len());
     /// ```
     pub fn insert(&mut self, key: &str, value: Value) -> Option<Value> {
-        assert!(key.len() > 0, "Empty key");
-        //assert!(key.len() < 2000, "So big key");
+        assert!(!key.is_empty(), "Empty key");
         match self.entry(key) {
             Occupied(mut entry) => Some(entry.insert(value)),
             Vacant(entry) => {
@@ -131,7 +127,7 @@ impl<Value> TSTMap<Value> {
     /// assert_eq!(1, count["abd"]);
     /// ```
     pub fn entry(&mut self, key: &str) -> Entry<Value> {
-        assert!(key.len() > 0, "Empty key");
+        assert!(!key.is_empty(), "Empty key");
         let l = &mut self.size;
         let cur = traverse::insert(self.root.as_mut(), key);
         Entry::<Value>::new(cur, l)
@@ -173,12 +169,7 @@ impl<Value> TSTMap<Value> {
     pub fn get(&self, key: &str) -> Option<&Value> {
         match traverse::search(self.root.as_ref(), key) {
             None => None,
-            Some(ptr) => {
-                match ptr.value {
-                    None => None,
-                    Some(ref r) => Some(r)
-                }
-            }
+            Some(ptr) => ptr.value.as_ref(),
         }
     }
 
@@ -199,12 +190,7 @@ impl<Value> TSTMap<Value> {
     pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
         match traverse::search_mut(self.root.as_ref_mut(), key) {
             None => None,
-            Some(ptr) => {
-                match ptr.value {
-                    None => None,
-                    Some(ref mut r) => Some(r)
-                }
-            }
+            Some(ptr) => ptr.value.as_mut(),
         }
     }
 
@@ -543,6 +529,22 @@ impl<Value: Debug> Debug for TSTMap<Value> {
             try!(write!(f, "{:?}: {:?},", k, v));
         }
         (write!(f, "}}"))
+    }
+}
+
+impl<Value> Default for TSTMap<Value> {
+    /// Constructs a new, empty `TSTMap<Value>`.
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::TSTMap;
+    /// let mut t: TSTMap<i64> = Default::default();
+    /// ```
+    fn default() -> Self {
+        TSTMap {
+            root: Default::default(),
+            size: 0,
+        }
     }
 }
 

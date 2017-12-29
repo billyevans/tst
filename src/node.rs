@@ -188,7 +188,7 @@ impl<'x, Value> Clone for NodeRefMut<'x, Value> {
 impl<'x, Value> BoxedNodeRefMut<'x, Value> {
     pub fn as_node_ref(&self) -> &'x mut Node<Value> {
         unsafe {
-            let mut r: &mut BoxedNode<Value> = &mut *self.node;
+            let r: &mut BoxedNode<Value> = &mut *self.node;
             r.as_node_ref_mut()
         }
     }

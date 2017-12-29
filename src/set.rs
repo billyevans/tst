@@ -35,9 +35,7 @@ impl TSTSet {
     ///
     /// let mut s: TSTSet = TSTSet::new();
     /// ```
-    pub fn new() -> Self {
-        TSTSet { map: TSTMap::new() }
-    }
+    pub fn new() -> Self { Default::default() }
 
     /// Returns the number of elements in the set.
     ///
@@ -276,6 +274,22 @@ impl<'x> Extend<(&'x str)> for TSTSet {
     }
 }
 
+impl Default for TSTSet {
+    /// Makes a new empty `TSTSet`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tst::TSTSet;
+    ///
+    /// let mut s: TSTSet = TSTSet::new();
+    /// ```
+
+    fn default() -> Self {
+        TSTSet { map: Default::default() }
+    }
+}
+
 impl Debug for TSTSet {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{{"));
@@ -283,12 +297,6 @@ impl Debug for TSTSet {
             try!(write!(f, "{:?},", x));
         }
         (write!(f, "}}"))
-    }
-}
-
-impl Default for TSTSet {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
