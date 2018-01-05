@@ -292,11 +292,7 @@ impl Default for TSTSet {
 
 impl Debug for TSTSet {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{{"));
-        for x in self.iter() {
-            try!(write!(f, "{:?},", x));
-        }
-        (write!(f, "}}"))
+        f.debug_set().entries(self.iter()).finish()
     }
 }
 

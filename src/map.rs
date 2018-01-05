@@ -524,11 +524,7 @@ impl<Value> Drop for TSTMap<Value> {
 
 impl<Value: Debug> Debug for TSTMap<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{{"));
-        for (k, v) in self.iter() {
-            try!(write!(f, "{:?}: {:?},", k, v));
-        }
-        (write!(f, "}}"))
+        f.debug_map().entries(self.iter()).finish()
     }
 }
 

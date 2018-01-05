@@ -118,6 +118,20 @@ fn get_mut() {
 }
 
 #[test]
+fn get_mut_none_empty_map() {
+    let mut m = TSTMap::<u32>::new();
+    assert_eq!(None, m.get_mut("x"));
+}
+
+#[test]
+fn get_mut_none() {
+    let mut m = TSTMap::new();
+    m.insert("abc", 1);
+
+    assert_eq!(None, m.get_mut("abx"));
+}
+
+#[test]
 fn entry_occupied() {
     let mut m = TSTMap::new();
 
@@ -386,10 +400,7 @@ fn format() {
     m.insert("abcdefghjkik", -169_874);
 
     let m_str = format!("{:?}", m);
-    assert_eq!(
-        "{\"abc\": 2,\"abcdefghjkik\": -169874,\"abd\": 1,\"abdd\": 4,}",
-        m_str
-    );
+    assert_eq!("{\"abc\": 2, \"abcdefghjkik\": -169874, \"abd\": 1, \"abdd\": 4}", m_str);
 }
 
 #[test]
@@ -540,7 +551,6 @@ fn prefix_iterator_only_one() {
 #[test]
 fn prefix_iterator_mut() {
     let mut m = TSTMap::new();
-
     m.insert("first", 1);
     m.insert("second", 2);
     m.insert("firstthird", 3);
@@ -606,7 +616,7 @@ fn values_iterator() {
 }
 
 #[test]
-fn wild_card_iterator_simple() {
+fn wildcard_iter_simple() {
     let m = tstmap!{
         "x" => 1,
         "y" => 2,
@@ -621,10 +631,10 @@ fn wild_card_iterator_simple() {
 }
 
 #[test]
-fn wild_card_iterator() {
+fn wildcard_iter() {
     let m = prepare_data();
-    let mut m_str = String::new();
 
+    let mut m_str = String::new();
     for x in m.wildcard_iter("BYPA..") {
         m_str.push_str(&format!("{:?}", x));
     }
@@ -632,10 +642,11 @@ fn wild_card_iterator() {
 }
 
 #[test]
-fn wild_card_iterator_dot_in_begin() {
+fn wildcard_iter_dot_at_begin() {
     let m = tstmap!{
         "bac" => 1,
         "aac" => 2,
+        "cac" => 3,
     };
 
     let mut m_str = String::new();
@@ -643,11 +654,27 @@ fn wild_card_iterator_dot_in_begin() {
     for x in m.wildcard_iter(".ac") {
         m_str.push_str(&format!("{:?}", x));
     }
-    assert_eq!("(\"aac\", 2)(\"bac\", 1)", m_str);
+    assert_eq!("(\"aac\", 2)(\"bac\", 1)(\"cac\", 3)", m_str);
 }
 
 #[test]
-fn wild_card_iterator_empty() {
+fn wildcard_iter_dot_at_end() {
+    let m = tstmap!{
+        "bac" => 1,
+        "aac" => 2,
+        "bax" => 3,
+    };
+
+    let mut m_str = String::new();
+
+    for x in m.wildcard_iter("ba.") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+    assert_eq!("(\"bac\", 1)(\"bax\", 3)", m_str);
+}
+
+#[test]
+fn wildcard_iter_empty() {
     let m = tstmap!{
         "BY" => 1,
         "BYE" => 2,
@@ -662,7 +689,7 @@ fn wild_card_iterator_empty() {
 }
 
 #[test]
-fn wild_card_iterator_mut() {
+fn wildcard_iter_mut() {
     let mut m = prepare_data();
 
     for (_, v) in m.wildcard_iter_mut("BYPA..") {
@@ -672,6 +699,22 @@ fn wild_card_iterator_mut() {
     assert_eq!(-13, m["BYPATH"]);
     assert_eq!(8, m["BYPRODUCT"]);
     assert_eq!(5, m["BYLINE"]);
+}
+
+#[test]
+fn wildcard_iter_unicode() {
+    let mut m = TSTMap::new();
+    m.insert("ухонос", 100);
+    m.insert("сухонос", 1000);
+    m.insert("хонос", 10000);
+    m.insert("онос", -100);
+
+    let mut m_str = String::new();
+    for x in m.wildcard_iter("..х.но.") {
+        m_str.push_str(&format!("{:?}", x));
+    }
+
+    assert_eq!("(\"сухонос\", 1000)", m_str);
 }
 
 #[test]
@@ -752,7 +795,7 @@ fn macros_ctor() {
 }
 
 #[test]
-fn  insert_remove_get_big_key_not_overflow_stack() {
+fn insert_remove_get_big_key_not_overflow_stack() {
     let mut m = TSTMap::new();
     let mut key = String::new();
 
@@ -768,7 +811,7 @@ fn  insert_remove_get_big_key_not_overflow_stack() {
 }
 
 #[test]
-fn  drop_stack_overflow() {
+fn drop_stack_overflow() {
     let mut m = TSTMap::new();
     let mut key = String::new();
 
@@ -778,4 +821,16 @@ fn  drop_stack_overflow() {
     m.insert(&key, 666);
 
     assert_eq!(1, m.len());
+}
+
+#[test]
+fn unicode() {
+    let mut m = TSTMap::new();
+    m.insert("::ХУЙ", 12);
+
+    assert_eq!(1, m.len());
+    assert_eq!(None, m.get("::ХУЙЯ"));
+    assert_eq!(Some(&12), m.get("::ХУЙ"));
+    assert_eq!(Some(12), m.remove("::ХУЙ"));
+    assert_eq!(None, m.get("::ХУЙ"));
 }
