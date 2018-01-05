@@ -13,3 +13,7 @@ repository = "https://github.com/billyevans/tst"
 homepage = "https://github.com/billyevans/tst"
 documentation = "http://billyevans.github.io/tst/tst"
 include = ["src/*.rs", "Cargo.toml"]
+
+[dev-dependencies]
+libc = "*"
+rand = "*"

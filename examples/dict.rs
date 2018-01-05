@@ -1,10 +1,18 @@
-extern crate tst;
+extern crate libc;
+extern {fn je_stats_print (write_cb: extern fn (*const libc::c_void, *const libc::c_char), cbopaque: *const libc::c_void, opts: *const libc::c_char);}
+extern fn write_cb (_: *const libc::c_void, message: *const libc::c_char) {
+    print! ("{}", String::from_utf8_lossy (unsafe {std::ffi::CStr::from_ptr (message as *const i8) .to_bytes()}));}
 
+
+extern crate tst;
 use std::env;
 use tst::TSTSet;
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
+extern crate rand;
+use rand::{thread_rng, Rng};
+
 
 fn match_prefix(set: &TSTSet, prefix: &str) {
     println!("match('{}'):", prefix);
@@ -23,24 +31,34 @@ fn load_dict(path: &str, set: &mut TSTSet) -> io::Result<()> {
     let mut buffer = String::new();
     let mut file = try!(File::open(path));
     try!(file.read_to_string(&mut buffer));
-    // TODO: Add shuffle sort of lines, for better spread
+
+    let mut v = vec![];
     for line in buffer.split('\n') {
         if line.len() > 0 {
-            set.insert(line);
+            v.push(line);
+
         }
     }
+    let mut rng = thread_rng();
+    rng.shuffle(&mut v);
+
+    for line in v.iter() {
+        set.insert(line);
+    }
+
     Ok(())
 }
 
 fn main() {
     if env::args().count() < 3 {
-        panic!("usage: {} <dict>  <prefix1> [<prefix2> ...]",
+        panic!("usage: {} <dict> <prefix1> [<prefix2> ...]",
                &env::args().nth(0).unwrap());
     }
     // read dict
     let mut set = TSTSet::new();
     load_dict(&env::args().nth(1).unwrap(), &mut set).unwrap();
-
+    //TODO: use flag
+    {unsafe {je_stats_print (write_cb, std::ptr::null(), std::ptr::null())};}
     // print matched with prefix
     let mut args = env::args();
     args.next();
