@@ -15,5 +15,5 @@ documentation = "http://billyevans.github.io/tst/tst"
 include = ["src/*.rs", "Cargo.toml"]
 
 [dev-dependencies]
-libc = "*"
-rand = "*"
+libc = "v0.2.35"
+rand = "v0.4.1"
