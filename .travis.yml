@@ -1,12 +1,8 @@
-sudo: false
+sudo: required
 language: rust
 rust: stable
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
+services:
+  - docker
 
 branches:
   except:
@@ -17,11 +13,7 @@ script:
   - cargo doc
 
 after_success:
-  - export PATH=$PATH:$HOME/kcov/bin
-  - bash install-kcov.sh
-  - kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/map_ut-*
-  - kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/set_ut-*
-  - kcov --coveralls-id=$TRAVIS_JOB_ID --exclude-pattern=/.cargo --exclude-path=tests target/kcov target/debug/tst-*
+  - docker run -it --rm --security-opt seccomp=unconfined --volume "$PWD:/volume" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID"  elmtai/docker-rust-kcov  "cargo-kcov kcov -v --coveralls"
   - bash deploy-docs.sh
 
 deploy:
