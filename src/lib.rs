@@ -82,9 +82,9 @@ mod map;
 mod set;
 
 pub mod tst_map {
-    pub use map::*;
+    pub use crate::map::*;
 }
 
 pub mod tst_set {
-    pub use set::*;
+    pub use crate::set::*;
 }

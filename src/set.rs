@@ -1,4 +1,4 @@
-use tst_map::{self, TSTMap};
+use crate::tst_map::{self, TSTMap};
 use std::fmt::{self, Debug};
 use std::iter::{Map, FromIterator};
 

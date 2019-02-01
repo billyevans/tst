@@ -246,9 +246,9 @@ impl<Value> Node<Value> {
 
 impl<Value: Debug> Debug for Node<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{{\n"));
-        try!(write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
-            self.lt, self.eq, self.gt, self.value, self.c));
-        (write!(f, "}}\n"))
+        write!(f, "{{\n")?;
+        write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
+            self.lt, self.eq, self.gt, self.value, self.c)?;
+        write!(f, "}}\n")
     }
 }
