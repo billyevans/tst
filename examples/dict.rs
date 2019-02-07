@@ -9,13 +9,13 @@ extern fn write_cb (_: *mut libc::c_void, message: *const libc::c_char) {
     print! ("{}", String::from_utf8_lossy (unsafe {std::ffi::CStr::from_ptr (message as *const i8) .to_bytes()}));}
 extern crate jemalloc_sys;
 
-extern crate tst;
 use std::env;
 use tst::TSTSet;
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 
 fn match_prefix(set: &TSTSet, prefix: &str) {
@@ -44,7 +44,7 @@ fn load_dict(path: &str, set: &mut TSTSet) -> io::Result<()> {
         }
     }
     let mut rng = thread_rng();
-    rng.shuffle(&mut v);
+    v.shuffle(&mut rng);
 
     for line in v.iter() {
         set.insert(line);

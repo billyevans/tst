@@ -1,5 +1,3 @@
-extern crate tst;
-
 use std::env;
 use tst::TSTMap;
 

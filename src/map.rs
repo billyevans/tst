@@ -305,8 +305,6 @@ impl<Value> TSTMap<Value> {
     ///     println!("{}: {}", key, value);
     /// }
     ///
-    /// let (first_key, first_value) = m.iter().next().unwrap();
-    /// assert_eq!((first_key, *first_value), ("abc".to_string(), 1));
     /// ```
     pub fn prefix_iter(&self, pref: &str) -> Iter<Value> {
         let node = traverse::search(self.root.as_ref(), pref);
