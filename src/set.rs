@@ -265,9 +265,9 @@ impl<'x> FromIterator<&'x str> for TSTSet {
     }
 }
 
-impl<'x> Extend<(&'x str)> for TSTSet {
+impl<'x> Extend<&'x str> for TSTSet {
     #[inline]
-    fn extend<I: IntoIterator<Item=(&'x str)>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item=&'x str>>(&mut self, iter: I) {
         for k in iter {
             self.insert(k);
         }

@@ -754,7 +754,7 @@ impl<'x, Value> Entry<'x, Value> {
 impl<'x, Value> OccupiedEntry<'x, Value> {
     fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Self {
         OccupiedEntry {
-            node: node,
+            node,
             cont_size: size,
         }
     }
@@ -785,7 +785,7 @@ impl<'x, Value> OccupiedEntry<'x, Value> {
 impl<'x, Value> VacantEntry<'x, Value> {
     fn new(node: &'x mut Node<Value>, size: &'x mut usize) -> Self {
         VacantEntry {
-            node: node,
+            node,
             cont_size: size,
         }
     }

@@ -231,7 +231,7 @@ impl<Value> Node<Value> {
             eq: Default::default(),
             gt: Default::default(),
             value: None,
-            c: c,
+            c,
         }
     }
 
@@ -246,9 +246,9 @@ impl<Value> Node<Value> {
 
 impl<Value: Debug> Debug for Node<Value> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{\n")?;
+        writeln!(f, "{{")?;
         write!(f, "lt = {:?}, eq = {:?}, gt = {:?}, val = {:?}, c = {:?}",
             self.lt, self.eq, self.gt, self.value, self.c)?;
-        write!(f, "}}\n")
+        writeln!(f, "}}")
     }
 }
