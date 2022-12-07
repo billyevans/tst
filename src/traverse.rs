@@ -144,7 +144,7 @@ impl<Value> IntoTraverse<Value> {
             stack: Trace {
                 stack: vec![TraverseEntry::Node(("".to_string(), node))],
             },
-            size: size,
+            size,
         }
     }
 
