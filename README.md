@@ -1,7 +1,6 @@
 # tst
-
-[![Build Status](https://travis-ci.org/billyevans/tst.svg?branch=master)](https://travis-ci.org/billyevans/tst)
-[![Coverage Status](https://coveralls.io/repos/billyevans/tst/badge.svg?branch=master)](https://coveralls.io/r/billyevans/tst?branch=master)
+[![CI](https://github.com/billyevans/tst/actions/workflows/rust.yml/badge.svg)](https://github.com/billyevans/tst/actions/workflows/rust.yml)
+[![Coverage Status](https://coveralls.io/repos/github/billyevans/tst/badge.svg?branch=master)](https://coveralls.io/github/billyevans/tst?branch=master)
 [![crates.io](http://meritbadge.herokuapp.com/tst)](https://crates.io/crates/tst)
 [![API](https://docs.rs/tst/badge.svg)](https://docs.rs/tst/)
 
@@ -23,7 +22,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tst = "0.10.*"
+tst = "0.12.*"
 ```
 
 ## Quick Start
@@ -123,6 +122,6 @@ https://en.wikipedia.org/wiki/Ternary_search_tree
 
 # License
 
-TST is distributed under the terms of the MIT license. 
+TST is distributed under the terms of the MIT license.
 
 See [LICENSE-MIT](LICENSE-MIT), and [COPYRIGHT](COPYRIGHT) for details.
