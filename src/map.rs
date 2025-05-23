@@ -516,7 +516,7 @@ impl<Value> Drop for TSTMap<Value> {
     fn drop(&mut self) {
         let root = self.root.take();
         let mut iter = DropTraverse::new(root);
-        for _ in iter.next() { }
+        while let Some(_) = iter.next() { }
     }
 }
 

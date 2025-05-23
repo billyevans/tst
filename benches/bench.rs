@@ -1,10 +1,5 @@
-#![cfg(test)]
-#![feature(test)]
-extern crate test;
-
-extern crate tst;
-use self::tst::TSTMap;
-use self::test::Bencher;
+use criterion::{criterion_group, criterion_main, Criterion};
+use tst::TSTMap;
 use std::str;
 
 fn prepare() -> TSTMap<i32> {
@@ -24,49 +19,76 @@ fn prepare() -> TSTMap<i32> {
     m
 }
 
-#[bench]
-fn insert_same(b: &mut Bencher) {
-    let mut m = prepare();
-
-    let mut k = 100;
-    b.iter(|| {
-        m.insert("abcabcabca", k);
-        k += 1;
+fn insert_same(c: &mut Criterion) {
+    c.bench_function("insert_same", |b| {
+        b.iter_with_setup(
+            || {
+                let m = prepare();
+                let k = 100;
+                (m, k)
+            },
+            |(mut m, mut k)| {
+                m.insert("abcabcabca", k);
+                k += 1;
+                std::hint::black_box((m, k))
+            }
+        );
     });
 }
 
-#[bench]
-fn get_same(b: &mut Bencher) {
-    let m = prepare();
-
-    b.iter(|| {
-        m.get("abcabcabca");
+fn get_same(c: &mut Criterion) {
+    c.bench_function("get_same", |b| {
+        b.iter_with_setup(
+            || prepare(),
+            |m| {
+                std::hint::black_box(m.get("abcabcabca"));
+            }
+        );
     });
 }
 
-#[bench]
-fn remove_same(b: &mut Bencher) {
-    let mut m = prepare();
-
-    b.iter(|| {
-        m.remove("abcabcabca");
+fn remove_same(c: &mut Criterion) {
+    c.bench_function("remove_same", |b| {
+        b.iter_with_setup(
+            || prepare(),
+            |mut m| {
+                std::hint::black_box(m.remove("abcabcabca"));
+            }
+        );
     });
 }
 
-#[bench]
-fn get_none(b: &mut Bencher) {
-    let m = prepare();
-    b.iter(|| {
-        m.get("abcabcabcad");
+fn get_none(c: &mut Criterion) {
+    c.bench_function("get_none", |b| {
+        b.iter_with_setup(
+            || prepare(),
+            |m| {
+                std::hint::black_box(m.get("abcabcabcad"));
+            }
+        );
     });
 }
 
-#[bench]
-fn iterate(b: &mut Bencher) {
-    let m = prepare();
-    b.iter(|| {
-        for x in m.iter() {
-            test::black_box(x);
-        }
+fn iterate(c: &mut Criterion) {
+    c.bench_function("iterate", |b| {
+        b.iter_with_setup(
+            || prepare(),
+            |m| {
+                for x in m.iter() {
+                    std::hint::black_box(x);
+                }
+            }
+        );
     });
 }
+
+criterion_group!(
+    benches,
+    insert_same,
+    get_same,
+    remove_same,
+    get_none,
+    iterate
+);
+
+criterion_main!(benches);
