@@ -154,7 +154,8 @@ jobs:
       uses: benchmark-action/github-action-benchmark@v1
       with:
         tool: 'cargo'
-        output-file-path: target/criterion/*/base/estimates.json
+        run: cargo bench | tee benchmark_output.txt
+        output-file-path: benchmark_output.txt
         github-token: ${{ secrets.GITHUB_TOKEN }}
         auto-push: true
         comment-on-alert: true

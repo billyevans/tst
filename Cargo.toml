@@ -17,7 +17,7 @@ include = ["src/*.rs", "Cargo.toml"]
 
 [dev-dependencies]
 libc = "0.2.*"
-rand = "0.6.*"
+rand = "0.9.*"
 jemallocator = "0.1.*"
 jemalloc-sys = "0.1.*"
 criterion = "0.6"
