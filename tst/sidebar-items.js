@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["tstmap!","Create a `TSTMap` containing a given list of elements:\n"],["tstset!","Create a `TSTSet` containing a given list of elements:\n"]],"mod":[["tst_map",""],["tst_set",""]],"struct":[["TSTMap",""],["TSTSet","A set based on a `TSTMap`."]]});
+window.SIDEBAR_ITEMS = {"macro":["tstmap","tstset"],"mod":["tst_map","tst_set"]};
