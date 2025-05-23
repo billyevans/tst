@@ -1,8 +1,8 @@
 # tst
 [![CI](https://github.com/billyevans/tst/actions/workflows/rust.yml/badge.svg)](https://github.com/billyevans/tst/actions/workflows/rust.yml)
 [![Coverage Status](https://coveralls.io/repos/github/billyevans/tst/badge.svg?branch=master)](https://coveralls.io/github/billyevans/tst?branch=master)
-[![crates.io](http://meritbadge.herokuapp.com/tst)](https://crates.io/crates/tst)
-[![API](https://docs.rs/tst/badge.svg)](https://docs.rs/tst/)
+[![crates.io](https://img.shields.io/crates/v/tst)](https://crates.io/crates/tst)
+[![docs.rs](https://docs.rs/tst/badge.svg)](https://docs.rs/tst/)
 
 Ternary search tree collection in rust with similar API to std::collections as it possible.
 
