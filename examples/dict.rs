@@ -5,7 +5,7 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 extern crate libc;
 //extern {fn __rjem_je_stats_print (write_cb: extern fn (*const libc::c_void, *const libc::c_char), cbopaque: *const libc::c_void, opts: *const libc::c_char);}
-extern fn write_cb (_: *mut libc::c_void, message: *const libc::c_char) {
+extern "C" fn write_cb (_: *mut libc::c_void, message: *const libc::c_char) {
     print! ("{}", String::from_utf8_lossy (unsafe {std::ffi::CStr::from_ptr (message as *const i8) .to_bytes()}));}
 extern crate jemalloc_sys;
 

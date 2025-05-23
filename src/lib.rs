@@ -24,8 +24,8 @@ macro_rules! tstmap {
         $crate::TSTMap::new()
     }};
     // trailing comma case
-    ($($key:expr => $value:expr,)+) => (tstmap!($($key => $value),+));
-    ($( $key: expr => $val: expr ),*) => {{
+    ($($key:expr_2021 => $value:expr_2021,)+) => (tstmap!($($key => $value),+));
+    ($( $key: expr_2021 => $val: expr_2021 ),*) => {{
         let mut m = $crate::TSTMap::new();
         $(
             m.insert($key, $val);
@@ -60,8 +60,8 @@ macro_rules! tstset {
         $crate::TSTSet::new()
     }};
     // trailing comma case
-    ($($key:expr,)+) => (tstset!($($key),+));
-    ($($key: expr),*) => {{
+    ($($key:expr_2021,)+) => (tstset!($($key),+));
+    ($($key: expr_2021),*) => {{
         let mut s = $crate::TSTSet::new();
         $(
             s.insert($key);
