@@ -148,13 +148,12 @@ jobs:
         key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Run benchmarks
-      run: cargo bench
+      run: cargo bench | tee benchmark_output.txt
 
     - name: Store benchmark result
       uses: benchmark-action/github-action-benchmark@v1
       with:
         tool: 'cargo'
-        run: cargo bench | tee benchmark_output.txt
         output-file-path: benchmark_output.txt
         github-token: ${{ secrets.GITHUB_TOKEN }}
         auto-push: true
